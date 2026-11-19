@@ -1,0 +1,1 @@
+import { bootstrapApplication } from '@angular/platform-browser';\nimport { AppComponent } from './app/app.component';\nbootstrapApplication(AppComponent).catch((error) => console.error(error));
