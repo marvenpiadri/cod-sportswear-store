@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProductImagePipeline, ImageVariant } from './services/product-image-pipeline';
 
@@ -21,7 +21,7 @@ type CustomerDetails = { fullName:string; phone:string; whatsapp:string; city:st
 export class AppComponent {
  formatMAD(amount:number):string{return new Intl.NumberFormat('fr-MA',{style:'currency',currency:'MAD',maximumFractionDigits:0}).format(amount);}
  products:Product[]=[{id:1,name:'Essential Training Tee',category:'TRAINING / TOP',price:249,image:'linear-gradient(140deg,#d5d2ca,#a5a39c)',tag:'CORE',colors:['#242424','#d4d1c8','#7b827c']},{id:2,name:'Performance Hoodie',category:'TRAINING / LAYER',price:449,image:'linear-gradient(145deg,#b1b4b1,#646a66)',tag:'NEW',colors:['#242424','#858b86']},{id:3,name:'Utility Jogger',category:'TRAINING / BOTTOM',price:379,image:'linear-gradient(145deg,#aaa69e,#7e7a73)',colors:['#242424','#8d8c87']},{id:4,name:'Core Training Short',category:'TRAINING / BOTTOM',price:229,image:'linear-gradient(140deg,#c6c6c2,#898d8a)',colors:['#242424','#b6b5b1']}];
- cart=signal<CartItem[]>([]);adminOpen=signal(false);adminBusy=signal(false);adminProducts=signal<any[]>([]);adminMessage=signal("");imagePreviewId=signal<number|null>(null);variantSummary=signal("");variants:ImageVariant[]=[];apiUrl="";adminToken="";newProduct={name:"",slug:"",description:"",price:0,status:"draft"};private imagePipeline= new ProductImagePipeline();cartCount=computed(()=>this.cart().reduce((n,item)=>n+item.quantity,0));subtotal=computed(()=>this.cart().reduce((n,item)=>n+item.product.price*item.quantity,0));cartOpen=signal(false);checkoutOpen=signal(false);orderPrepared=signal(false);
+ cart=signal<CartItem[]>([]);adminOpen=signal(false);adminBusy=signal(false);adminProducts=signal<any[]>([]);adminMessage=signal("");imagePreviewId=signal<number|null>(null);variantSummary=signal("");variants:ImageVariant[]=[];apiUrl="";adminToken="";newProduct={name:"",slug:"",description:"",price:0,status:"draft"};private imagePipeline=inject(ProductImagePipeline);cartCount=computed(()=>this.cart().reduce((n,item)=>n+item.quantity,0));subtotal=computed(()=>this.cart().reduce((n,item)=>n+item.product.price*item.quantity,0));cartOpen=signal(false);checkoutOpen=signal(false);orderPrepared=signal(false);
  customer:CustomerDetails={fullName:'',phone:'',whatsapp:'',city:'',address:'',note:''};
  add(product:Product){this.cart.update(items=>{const found=items.find(item=>item.product.id===product.id);return found?items.map(item=>item.product.id===product.id?{...item,quantity:item.quantity+1}:item):[...items,{product,quantity:1}]});this.cartOpen.set(true);}
  increase(id:number){this.cart.update(items=>items.map(item=>item.product.id===id?{...item,quantity:item.quantity+1}:item));}
