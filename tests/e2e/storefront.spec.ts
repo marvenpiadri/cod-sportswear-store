@@ -11,21 +11,23 @@ test('storefront displays its core sections', async ({ page }) => {
 test('bag opens after adding an item', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /add to bag/i }).first().click();
-  await expect(page.getByRole('heading', { name: /your bag/i })).toBeVisible();
-  await expect(page.getByText('Essential Training Tee')).toBeVisible();
+  const bag = page.getByRole('complementary');
+  await expect(bag.getByRole('heading', { name: /your bag/i })).toBeVisible();
+  await expect(bag.getByText('Essential Training Tee')).toBeVisible();
 });
 
 test('cart quantity, subtotal and removal update correctly', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /add to bag/i }).first().click();
-  await expect(page.getByText('Subtotal')).toBeVisible();
-  await expect(page.getByRole('button', { name: /increase quantity/i })).toBeVisible();
-  await page.getByRole('button', { name: /increase quantity/i }).click();
-  await expect(page.getByRole('heading', { name: /your bag \(2\)/i })).toBeVisible();
-  await page.getByRole('button', { name: /decrease quantity/i }).click();
-  await expect(page.getByRole('heading', { name: /your bag \(1\)/i })).toBeVisible();
-  await page.getByRole('button', { name: /remove/i }).click();
-  await expect(page.getByText(/your bag is empty/i)).toBeVisible();
+  const bag = page.getByRole('complementary');
+  await expect(bag.getByText('Subtotal')).toBeVisible();
+  await expect(bag.getByRole('button', { name: /increase quantity/i })).toBeVisible();
+  await bag.getByRole('button', { name: /increase quantity/i }).click();
+  await expect(bag.getByRole('heading', { name: /your bag \(2\)/i })).toBeVisible();
+  await bag.getByRole('button', { name: /decrease quantity/i }).click();
+  await expect(bag.getByRole('heading', { name: /your bag \(1\)/i })).toBeVisible();
+  await bag.getByRole('button', { name: /remove/i }).click();
+  await expect(bag.getByText(/your bag is empty/i)).toBeVisible();
 });
 
 test('storefront renders on a narrow mobile viewport', async ({ page }) => {
