@@ -87,7 +87,7 @@ test('monochrome admin panel exposes product creation and image controls', async
   await expect(panel.getByRole('heading', { name: 'Products' })).toBeVisible();
   await expect(panel.getByRole('heading', { name: 'New product' })).toBeVisible();
   await expect(panel.getByLabel(/worker api url/i)).toBeVisible();
-  await expect(panel.getByLabel(/admin token/i)).toBeVisible();
+  await expect(panel.getByLabel(/five-digit PIN/i)).toBeVisible();
   await expect(panel.getByRole('button', { name: /create product/i })).toBeVisible();
   await expect(panel.getByRole('button', { name: /load.*refresh products/i })).toBeVisible();
   await panel.getByRole('button', { name: '×' }).click();
