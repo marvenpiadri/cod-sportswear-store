@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 type Product = {id:number;name:string;category:string;price:number;image:string;tag?:string;colors:string[]};
@@ -6,7 +6,7 @@ type CartItem = { product: Product; quantity: number };
 type CustomerDetails = { fullName:string; phone:string; whatsapp:string; city:string; address:string; note:string };
 
 @Component({
- selector:'store-root',standalone:true,imports:[FormsModule],
+ selector:'store-root',imports:[FormsModule],changeDetection:ChangeDetectionStrategy.OnPush,
  template:`<div class="announcement">COMPLIMENTARY SHIPPING ON ORDERS OVER 750 MAD</div>
  <header class="header"><a class="brand" href="#">FORM<span>/</span>ACTIVE</a><nav><a href="#shop">SHOP</a><a href="#story">OUR STANDARD</a><a href="#contact">CONTACT</a></nav><button class="cart-button" (click)="cartOpen.set(!cartOpen())">BAG <span>{{cartCount()}}</span></button></header>
  <main><section class="hero"><div class="hero-copy"><p class="eyebrow">BUILT FOR THE DAILY GRIND</p><h1>MOVE WITH<br><em>PURPOSE.</em></h1><p class="hero-text">Performance essentials designed to move with you. Nothing unnecessary. Everything earned.</p><a class="cta" href="#shop">EXPLORE THE COLLECTION <span>↗</span></a><div class="hero-meta"><span>01 — TRAIN</span><span>02 — RECOVER</span><span>03 — REPEAT</span></div></div><div class="hero-art"><div class="art-label">FORM / 001<br>PERFORMANCE SYSTEM</div><div class="silhouette">F<br>A</div><div class="art-bottom">MOVE<br>BETTER.</div></div></section>
