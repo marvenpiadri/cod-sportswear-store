@@ -1,0 +1,1 @@
+# Roadmap\n\n1. Foundation and D1 schema. 2. Storefront/catalog. 3. Cart, checkout, COD and WhatsApp handoff. 4. Admin authentication/dashboard. 5. Products, variants and media. 6. Orders, stock, delivery and reconciliation. 7. Customers and settings. 8. Hardening, testing, SEO, backups and deployment.\n
