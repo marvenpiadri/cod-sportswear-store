@@ -1,1 +1,3 @@
-# WhatsApp handoff\n\nStore settings hold the owner's WhatsApp number in international format. Checkout optionally collects a separate customer WhatsApp number. On order success, show order reference and a button opening WhatsApp with an encoded order summary. Customer actively sends the message. Admin has a customer-contact shortcut. Do not claim messages sent or delivery receipts absent WhatsApp API.\n
+# WhatsApp handoff
+
+Store settings hold the owner's WhatsApp number in international format. Checkout optionally collects a separate customer WhatsApp number. On order success, show order reference and a button opening WhatsApp with an encoded order summary. Customer actively sends the message. Admin has a customer-contact shortcut. Do not claim messages sent or delivery receipts absent WhatsApp API.
