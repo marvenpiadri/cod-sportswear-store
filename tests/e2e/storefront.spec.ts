@@ -13,7 +13,7 @@ test('bag opens after adding an item', async ({ page }) => {
   await page.getByRole('button', { name: /add to bag/i }).first().click();
   const bag = page.getByRole('complementary');
   await expect(bag.getByRole('heading', { name: /your bag/i })).toBeVisible();
-  await expect(bag.getByText('Essential Training Tee')).toBeVisible();
+  await expect(bag.locator('strong').filter({ hasText: 'Essential Training Tee' })).toBeVisible();
 });
 
 test('cart quantity, subtotal and removal update correctly', async ({ page }) => {
