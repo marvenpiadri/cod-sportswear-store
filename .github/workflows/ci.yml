@@ -12,7 +12,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - run: npm install
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run e2e
+      - name: Upload Playwright screenshots, traces and report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
