@@ -1,48 +1,24 @@
 # Browser testing
 
-We use **Playwright CLI** for interactive, agent-driven browser testing during development and **Playwright Test** for repeatable regression tests in CI.
-
-## Setup
-
-```bash
-npm install
-npx playwright install chromium
-npx playwright-cli install
-```
+Playwright Test provides automated browser regression checks. CI runs Angular production build, Playwright tests using Chromium, and Worker TypeScript typecheck on pushes and pull requests.
 
 ## Run regression tests
 
 ```bash
+npm install
+npx playwright install --with-deps chromium
+npm run build
 npm run e2e
 ```
 
-## Interactive agent browser
+## Current coverage
 
-Start the Angular app in one terminal:
+- Storefront sections and catalog rendering.
+- Add-to-bag and cart quantity/removal behavior.
+- Narrow/mobile rendering.
+- COD form validation and customer-detail capture.
+- Checkout usability on a small viewport.
+- Screenshot capture for desktop storefront, mobile storefront and mobile checkout.
+- Admin UI presence and product-management controls.
 
-```bash
-npm start
-```
-
-In another terminal, launch the browser and inspect its accessible snapshot:
-
-```bash
-npx playwright-cli open http://localhost:4200
-npx playwright-cli snapshot
-```
-
-Use the snapshot element references to click, fill and interact. Helpful commands include:
-
-```bash
-npx playwright-cli screenshot
-npx playwright-cli console
-npx playwright-cli close
-```
-
-For CLI usage and commands, see https://playwright.dev/agent-cli/installation and https://playwright.dev/docs/getting-started-cli.
-
-## Regression coverage
-
-Current smoke coverage checks the hero/shop/delivery content, quick-add bag opening, bag count increment, and rendering at a mobile viewport. Checkout, order creation, inventory and WhatsApp flows will be added as they are implemented.
-
-CI installs Playwright's Chromium browser and runs the Playwright Test suite on pushes and pull requests.
+The suite currently has 8 tests. The green CI run also typechecks the Worker. These are browser/UI checks, not a live production integration test: Worker URL, PIN, database migrations and WhatsApp configuration remain deployment prerequisites.
