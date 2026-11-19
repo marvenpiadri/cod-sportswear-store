@@ -12,7 +12,7 @@
 
 ## Remaining before launch
 - [ ] Configure Worker URL and owner WhatsApp number.
-- [ ] Provision secrets, especially ADMIN_PIN; add PIN rate limiting before production.
+- [x] Implement D1-backed admin PIN rate limiting (10 failed attempts per IP / 15 minutes); migration 0004 pending deployment.\n- [ ] Provision secrets, especially ADMIN_PIN, and apply reviewed migrations before production.
 - [ ] Verify and apply database migrations only after review and authorization.
 - [ ] Add real product photography and publish the actual catalog.
 - [ ] Validate checkout against the configured production Worker and confirm WhatsApp handoff end-to-end.
