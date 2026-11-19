@@ -35,9 +35,9 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
  }
 
  if(url.pathname==='/api/admin/orders'&&request.method==='GET'){const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);const {results}=await env.DB.prepare('SELECT o.id,o.order_number,o.total,o.created_at,c.full_name,c.phone,c.whatsapp_phone,c.city,c.address FROM orders o JOIN customers c ON c.id=o.customer_id ORDER BY o.created_at DESC LIMIT 50').all();return cors(json(results));}
- if(url.pathname==='/api/admin/products'&&request.method==='GET'){if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));return cors(json(await catalog(env,false)));}
+ if(url.pathname==='/api/admin/products'&&request.method==='GET'){const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);return cors(json(await catalog(env,false)));}
  if(url.pathname==='/api/admin/products'&&request.method==='POST'){
-  if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));
+  const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);
   let body:any;try{body=await request.json();}catch{return cors(json({error:'Invalid JSON'},400));}
   const name=String(body.name||'').trim(),description=String(body.description||'').trim(),price=Number(body.price),status=body.status==='active'?'active':'draft';
   if(!name||name.length>160||!Number.isSafeInteger(price)||price<0||price>1000000)return cors(json({error:'Name and valid price are required.'},400));
@@ -46,7 +46,7 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
   try{const result=await env.DB.prepare('INSERT INTO products(slug,name,description,price,status) VALUES(?,?,?,?,?)').bind(slug,name,description,price,status).run();return cors(json({id:result.meta.last_row_id,slug,name,description,price,status},201));}catch{return cors(json({error:'Slug may already exist.'},409));}
  }
  if(url.pathname==='/api/admin/images'&&request.method==='POST'){
-  if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));
+  const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);
   const form=await request.formData();const productId=Number(form.get('productId'));const altText=String(form.get('altText')||'');
   if(!Number.isInteger(productId)||productId<1)return cors(json({error:'Invalid product ID'},400));
   const product=await env.DB.prepare('SELECT id FROM products WHERE id=?').bind(productId).first();if(!product)return cors(json({error:'Product not found'},404));
