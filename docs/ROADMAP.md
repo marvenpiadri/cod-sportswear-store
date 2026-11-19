@@ -17,6 +17,7 @@
 - [ ] Add real product photography and publish the actual catalog.
 - [ ] Validate checkout against the configured production Worker and confirm WhatsApp handoff end-to-end.
 - [ ] Review backups, security, accessibility, SEO and deployment settings.
+- [x] Add persistent public checkout throttling (5 submissions/IP per 15 minutes); migration 0005 pending deployment.
 - [x] Make checkout customer/order/line-item writes transactional with D1 batch; CI verification pending.
 
 Do not deploy or apply production migrations without explicit approval.
