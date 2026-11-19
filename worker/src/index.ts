@@ -1,6 +1,6 @@
 export interface Env { DB: D1Database; PRODUCT_MEDIA: R2Bucket; ADMIN_TOKEN?: string; PUBLIC_MEDIA_BASE?: string; }
 const json=(data:unknown,status=200)=>Response.json(data,{status});
-const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,OPTIONS');return new Response(response.body,{status:response.status,headers:h});};
+const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');return new Response(response.body,{status:response.status,headers:h});};
 const authorized=(request:Request,env:Env)=>!!env.ADMIN_TOKEN&&request.headers.get('Authorization')===`Bearer ${env.ADMIN_TOKEN}`;
 const mediaUrl=(env:Env,key:string)=>env.PUBLIC_MEDIA_BASE?`${env.PUBLIC_MEDIA_BASE.replace(/\/$/,'')}/${key}`:null;
 async function catalog(env:Env,activeOnly:boolean){
