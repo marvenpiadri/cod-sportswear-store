@@ -4,9 +4,9 @@ compatibility_date = "2026-11-19"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "cod-sportswear"
-database_id = "REPLACE_AFTER_D1_CREATE"
+database_name = "mokiko"
+database_id = "3f54f739-90d2-4f98-9a15-d4cb32c288b4"
 
 [[r2_buckets]]
 binding = "PRODUCT_MEDIA"
-bucket_name = "cod-sportswear-media"
+bucket_name = "mokiko"
