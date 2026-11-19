@@ -2,6 +2,14 @@ export interface Env { DB: D1Database; PRODUCT_MEDIA: R2Bucket; ADMIN_PIN?: stri
 const json=(data:unknown,status=200)=>Response.json(data,{status});
 const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');return new Response(response.body,{status:response.status,headers:h});};
 const authorized=(request:Request,env:Env)=>!!env.ADMIN_PIN&&request.headers.get('Authorization')===`Bearer ${env.ADMIN_PIN}`;
+const ADMIN_LIMIT=10, ADMIN_WINDOW_MS=15*60*1000;
+async function adminAuth(request:Request,env:Env){
+ const ip=request.headers.get('CF-Connecting-IP')||'unknown'; const cutoff=new Date(Date.now()-ADMIN_WINDOW_MS).toISOString();
+ const recent=await env.DB.prepare('SELECT COUNT(*) AS attempts FROM admin_pin_attempts WHERE ip=? AND attempted_at>?').bind(ip,cutoff).first<any>();
+ if(Number(recent?.attempts||0)>=ADMIN_LIMIT)return {ok:false,response:json({error:'Too many PIN attempts. Try again in 15 minutes.'},429)};
+ if(authorized(request,env)){await env.DB.prepare('DELETE FROM admin_pin_attempts WHERE attempted_at<?').bind(cutoff).run();return {ok:true};}
+ await env.DB.prepare('INSERT INTO admin_pin_attempts(ip,attempted_at) VALUES(?,?)').bind(ip,new Date().toISOString()).run(); return {ok:false,response:json({error:'Unauthorized'},401)};
+}
 const mediaUrl=(env:Env,key:string)=>env.PUBLIC_MEDIA_BASE?`${env.PUBLIC_MEDIA_BASE.replace(/\/$/,'')}/${key}`:null;
 async function catalog(env:Env,activeOnly:boolean){
  const sql=activeOnly?"SELECT id,slug,name,description,price,status FROM products WHERE status='active' ORDER BY created_at DESC":"SELECT id,slug,name,description,price,status FROM products ORDER BY created_at DESC";
@@ -26,7 +34,7 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
   return cors(json({orderId,orderNumber,total:subtotal,currency:'MAD',status:'pending'},201));
  }
 
- if(url.pathname==='/api/admin/orders'&&request.method==='GET'){if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));const {results}=await env.DB.prepare('SELECT o.id,o.order_number,o.total,o.created_at,c.full_name,c.phone,c.whatsapp_phone,c.city,c.address FROM orders o JOIN customers c ON c.id=o.customer_id ORDER BY o.created_at DESC LIMIT 50').all();return cors(json(results));}
+ if(url.pathname==='/api/admin/orders'&&request.method==='GET'){const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);const {results}=await env.DB.prepare('SELECT o.id,o.order_number,o.total,o.created_at,c.full_name,c.phone,c.whatsapp_phone,c.city,c.address FROM orders o JOIN customers c ON c.id=o.customer_id ORDER BY o.created_at DESC LIMIT 50').all();return cors(json(results));}
  if(url.pathname==='/api/admin/products'&&request.method==='GET'){if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));return cors(json(await catalog(env,false)));}
  if(url.pathname==='/api/admin/products'&&request.method==='POST'){
   if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));
