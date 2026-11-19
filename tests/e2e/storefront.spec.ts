@@ -12,18 +12,20 @@ test('bag opens after adding an item', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /add to bag/i }).first().click();
   await expect(page.getByRole('heading', { name: /your bag/i })).toBeVisible();
-  await expect(page.getByText(/items selected/i)).toBeVisible();
+  await expect(page.getByText('Essential Training Tee')).toBeVisible();
 });
 
-test('bag count increments when another product is added', async ({ page }) => {
+test('cart quantity, subtotal and removal update correctly', async ({ page }) => {
   await page.goto('/');
-  const bag = page.getByRole('button', { name: /^bag/i });
-  await expect(bag).toContainText('0');
   await page.getByRole('button', { name: /add to bag/i }).first().click();
-  await expect(bag).toContainText('1');
-  await page.getByRole('button', { name: /continue shopping/i }).click();
-  await page.getByRole('button', { name: /add to bag/i }).nth(1).click();
-  await expect(bag).toContainText('2');
+  await expect(page.getByText('Subtotal')).toBeVisible();
+  await expect(page.getByRole('button', { name: /increase quantity/i })).toBeVisible();
+  await page.getByRole('button', { name: /increase quantity/i }).click();
+  await expect(page.getByRole('heading', { name: /your bag \(2\)/i })).toBeVisible();
+  await page.getByRole('button', { name: /decrease quantity/i }).click();
+  await expect(page.getByRole('heading', { name: /your bag \(1\)/i })).toBeVisible();
+  await page.getByRole('button', { name: /remove/i }).click();
+  await expect(page.getByText(/your bag is empty/i)).toBeVisible();
 });
 
 test('storefront renders on a narrow mobile viewport', async ({ page }) => {
