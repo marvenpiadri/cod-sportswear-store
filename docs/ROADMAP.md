@@ -17,5 +17,6 @@
 - [ ] Add real product photography and publish the actual catalog.
 - [ ] Validate checkout against the configured production Worker and confirm WhatsApp handoff end-to-end.
 - [ ] Review backups, security, accessibility, SEO and deployment settings.
+- [x] Make checkout customer/order/line-item writes transactional with D1 batch; CI verification pending.
 
 Do not deploy or apply production migrations without explicit approval.

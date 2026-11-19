@@ -28,10 +28,21 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
   if(!name||name.length>120||!phone||phone.length>30||!/^\+?[0-9\s().-]{5,25}$/.test(phone)||!whatsapp||whatsapp.length>30||!/^\+?[0-9\s().-]{5,25}$/.test(whatsapp)||!city||city.length>100||!address||address.length>500||note.length>500||!items.length||items.length>30)return cors(json({error:'Please check customer details and cart items. Fields may be too long or phone numbers invalid.'},400));
   const safeItems=[];for(const item of items){const id=Number(item.productId),qty=Number(item.quantity);if(!Number.isInteger(id)||id<1||!Number.isInteger(qty)||qty<1||qty>20)return cors(json({error:'Invalid cart item.'},400));const product:any=await env.DB.prepare("SELECT id,name,price FROM products WHERE id=? AND status='active'").bind(id).first();if(!product)return cors(json({error:'One of the products is no longer available.'},409));safeItems.push({...product,quantity:qty,lineTotal:product.price*qty});}
   const subtotal=safeItems.reduce((sum,item)=>sum+item.lineTotal,0);if(subtotal>10000000)return cors(json({error:'Order total is too high.'},400));
-  const customerResult=await env.DB.prepare('INSERT INTO customers(full_name,phone,whatsapp_phone,city,address,delivery_note) VALUES(?,?,?,?,?,?)').bind(name,phone,whatsapp,city,address,note).run();const customerId=customerResult.meta.last_row_id;
-  const orderNumber='COD-'+Date.now().toString(36).toUpperCase();const orderResult=await env.DB.prepare("INSERT INTO orders(order_number,customer_id,status,payment_method,payment_status,currency,subtotal,delivery_fee,total) VALUES(?,?,'pending','cod','unpaid','MAD',?,0,?)").bind(orderNumber,customerId,subtotal,subtotal).run();const orderId=orderResult.meta.last_row_id;
-  await env.DB.batch(safeItems.map(item=>env.DB.prepare('INSERT INTO order_items(order_id,variant_id,product_name,sku,size,color,unit_price,quantity,line_total) VALUES(?,NULL,?,? ,\'\',\'\',?,?,?)').bind(orderId,item.name,'PRODUCT-'+item.id,item.price,item.quantity,item.lineTotal)));
-  return cors(json({orderId,orderNumber,total:subtotal,currency:'MAD',status:'pending'},201));
+  // Persist the customer, order and line items in one D1 batch. D1 batch is transactional.
+  // The order references the customer inserted immediately before it via last_insert_rowid().
+  const orderNumber='COD-'+Date.now().toString(36).toUpperCase()+'-'+crypto.randomUUID().slice(0,8).toUpperCase();
+  const statements=[
+   env.DB.prepare('INSERT INTO customers(full_name,phone,whatsapp_phone,city,address,delivery_note) VALUES(?,?,?,?,?,?)').bind(name,phone,whatsapp,city,address,note),
+   env.DB.prepare("INSERT INTO orders(order_number,customer_id,status,payment_method,payment_status,currency,subtotal,delivery_fee,total) VALUES(?,last_insert_rowid(),'pending','cod','unpaid','MAD',?,0,?)").bind(orderNumber,subtotal,subtotal),
+   ...safeItems.map(item=>env.DB.prepare('INSERT INTO order_items(order_id,variant_id,product_name,sku,size,color,unit_price,quantity,line_total) VALUES((SELECT id FROM orders WHERE order_number=?),NULL,?,? ,\'\',\'\',?,?,?)').bind(orderNumber,item.name,'PRODUCT-'+item.id,item.price,item.quantity,item.lineTotal))
+  ];
+  try{
+   const results=await env.DB.batch(statements);
+   const orderId=results[1].meta.last_row_id;
+   return cors(json({orderId,orderNumber,total:subtotal,currency:'MAD',status:'pending'},201));
+  }catch{
+   return cors(json({error:'Order could not be saved. Please try again.'},500));
+  }
  }
 
  if(url.pathname==='/api/admin/orders'&&request.method==='GET'){const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);const {results}=await env.DB.prepare('SELECT o.id,o.order_number,o.total,o.created_at,c.full_name,c.phone,c.whatsapp_phone,c.city,c.address FROM orders o JOIN customers c ON c.id=o.customer_id ORDER BY o.created_at DESC LIMIT 50').all();return cors(json(results));}
