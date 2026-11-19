@@ -79,3 +79,17 @@ test('captures storefront desktop, mobile and checkout screenshots', async ({ pa
   await page.getByRole('complementary').getByRole('button', { name: /proceed to checkout/i }).click();
   await page.screenshot({ path: 'test-results/checkout-mobile.png', fullPage: true });
 });
+
+test('monochrome admin panel exposes product creation and image controls', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'ADMIN' }).click();
+  const panel = page.getByRole('dialog', { name: /product management/i });
+  await expect(panel.getByRole('heading', { name: 'Products' })).toBeVisible();
+  await expect(panel.getByRole('heading', { name: 'New product' })).toBeVisible();
+  await expect(panel.getByLabel(/worker api url/i)).toBeVisible();
+  await expect(panel.getByLabel(/admin token/i)).toBeVisible();
+  await expect(panel.getByRole('button', { name: /create product/i })).toBeVisible();
+  await expect(panel.getByRole('button', { name: /load.*refresh products/i })).toBeVisible();
+  await panel.getByRole('button', { name: '×' }).click();
+  await expect(panel).toBeHidden();
+});
