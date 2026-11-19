@@ -13,6 +13,19 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
  if(request.method==='OPTIONS')return cors(new Response(null,{status:204}));
  if(url.pathname==='/api/health')return cors(json({ok:true,service:'cod-sportswear-api'}));
  if(url.pathname==='/api/products'&&request.method==='GET')return cors(json(await catalog(env,true)));
+ if(url.pathname==='/api/orders'&&request.method==='POST'){
+  let body:any;try{body=await request.json();}catch{return cors(json({error:'Invalid JSON'},400));}
+  const customer=body.customer||{},items=Array.isArray(body.items)?body.items:[];
+  const name=String(customer.fullName||'').trim(),phone=String(customer.phone||'').trim(),whatsapp=String(customer.whatsapp||phone).trim(),city=String(customer.city||'').trim(),address=String(customer.address||'').trim(),note=String(customer.note||'').trim();
+  if(!name||!phone||!city||!address||!items.length||items.length>30)return cors(json({error:'Customer details and cart items are required.'},400));
+  const safeItems=[];for(const item of items){const id=Number(item.productId),qty=Number(item.quantity);if(!Number.isInteger(id)||id<1||!Number.isInteger(qty)||qty<1||qty>20)return cors(json({error:'Invalid cart item.'},400));const product:any=await env.DB.prepare("SELECT id,name,price FROM products WHERE id=? AND status='active'").bind(id).first();if(!product)return cors(json({error:'One of the products is no longer available.'},409));safeItems.push({...product,quantity:qty,lineTotal:product.price*qty});}
+  const subtotal=safeItems.reduce((sum,item)=>sum+item.lineTotal,0);if(subtotal>10000000)return cors(json({error:'Order total is too high.'},400));
+  const customerResult=await env.DB.prepare('INSERT INTO customers(full_name,phone,whatsapp_phone,city,address,delivery_note) VALUES(?,?,?,?,?,?)').bind(name,phone,whatsapp,city,address,note).run();const customerId=customerResult.meta.last_row_id;
+  const orderNumber='COD-'+Date.now().toString(36).toUpperCase();const orderResult=await env.DB.prepare("INSERT INTO orders(order_number,customer_id,status,payment_method,payment_status,currency,subtotal,delivery_fee,total) VALUES(?,?,'pending','cod','unpaid','MAD',?,0,?)").bind(orderNumber,customerId,subtotal,subtotal).run();const orderId=orderResult.meta.last_row_id;
+  await env.DB.batch(safeItems.map(item=>env.DB.prepare('INSERT INTO order_items(order_id,variant_id,product_name,sku,size,color,unit_price,quantity,line_total) VALUES(?,NULL,?,? ,\'\',\'\',?,?,?)').bind(orderId,item.name,'PRODUCT-'+item.id,item.price,item.quantity,item.lineTotal)));
+  return cors(json({orderId,orderNumber,total:subtotal,currency:'MAD',status:'pending'},201));
+ }
+
  if(url.pathname==='/api/admin/products'&&request.method==='GET'){if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));return cors(json(await catalog(env,false)));}
  if(url.pathname==='/api/admin/products'&&request.method==='POST'){
   if(!authorized(request,env))return cors(json({error:'Unauthorized'},401));
