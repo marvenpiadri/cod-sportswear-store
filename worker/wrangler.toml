@@ -10,3 +10,6 @@ database_id = "3f54f739-90d2-4f98-9a15-d4cb32c288b4"
 [[r2_buckets]]
 binding = "PRODUCT_MEDIA"
 bucket_name = "mokiko"
+
+[vars]
+PUBLIC_MEDIA_BASE = "https://pub-22f1ea2ceedc494a88c49453ea8b15bd.r2.dev"
