@@ -22,6 +22,12 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
  if(url.pathname==='/api/health')return cors(json({ok:true,service:'cod-sportswear-api'}));
  if(url.pathname==='/api/products'&&request.method==='GET')return cors(json(await catalog(env,true)));
  if(url.pathname==='/api/orders'&&request.method==='POST'){
+  // Lightweight persistent checkout throttling: 5 submissions/IP per 15 minutes.
+  const ip=request.headers.get('CF-Connecting-IP')||'unknown';const cutoff=new Date(Date.now()-15*60*1000).toISOString();
+  await env.DB.prepare('DELETE FROM order_attempts WHERE attempted_at<?').bind(cutoff).run();
+  const count=await env.DB.prepare('SELECT COUNT(*) AS attempts FROM order_attempts WHERE ip=? AND attempted_at>?').bind(ip,cutoff).first<any>();
+  if(Number(count?.attempts||0)>=5)return cors(json({error:'Too many order attempts. Please try again later.'},429));
+  await env.DB.prepare('INSERT INTO order_attempts(ip,attempted_at) VALUES(?,?)').bind(ip,new Date().toISOString()).run();
   let body:any;try{body=await request.json();}catch{return cors(json({error:'Invalid JSON'},400));}
   const customer=body.customer||{},items=Array.isArray(body.items)?body.items:[];
   const name=String(customer.fullName||'').trim(),phone=String(customer.phone||'').trim(),whatsapp=String(customer.whatsapp||phone).trim(),city=String(customer.city||'').trim(),address=String(customer.address||'').trim(),note=String(customer.note||'').trim();
