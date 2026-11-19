@@ -2,10 +2,10 @@ import { test, expect } from '@playwright/test';
 
 test('storefront displays its core sections', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: /move with purpose/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /training, simplified/i })).toBeVisible();
   await expect(page.getByRole('heading', { name: /training essentials/i })).toBeVisible();
   await expect(page.getByText(/pay on arrival/i)).toBeVisible();
-  await expect(page.getByRole('link', { name: /explore the collection/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /add to bag/i }).first()).toBeVisible();
 });
 
 test('bag opens after adding an item', async ({ page }) => {
@@ -87,7 +87,7 @@ test('monochrome admin panel exposes product creation and image controls', async
   await expect(panel.getByRole('heading', { name: 'Products' })).toBeVisible();
   await expect(panel.getByRole('heading', { name: 'New product' })).toBeVisible();
   await expect(panel.getByLabel(/worker api url/i)).toBeVisible();
-  await expect(panel.getByLabel(/five-digit PIN/i)).toBeVisible();
+  await expect(panel.getByLabel(/5-digit PIN/i)).toBeVisible();
   await expect(panel.getByRole('button', { name: /create product/i })).toBeVisible();
   await expect(panel.getByRole('button', { name: /load.*refresh products/i })).toBeVisible();
   await panel.getByRole('button', { name: '×' }).click();
