@@ -33,7 +33,7 @@ test('cart quantity, subtotal and removal update correctly', async ({ page }) =>
 test('storefront renders on a narrow mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: /move with purpose/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /training, simplified/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /add to bag/i }).first()).toBeVisible();
 });
 
