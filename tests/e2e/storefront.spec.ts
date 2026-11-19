@@ -68,3 +68,14 @@ test('checkout stays usable on a small viewport', async ({ page }) => {
   await expect(dialog.getByLabel(/full name/i)).toBeVisible();
   await expect(dialog.getByText(/no online payment/i)).toBeVisible();
 });
+
+
+test('captures storefront desktop, mobile and checkout screenshots', async ({ page }) => {
+  await page.goto('/');
+  await page.screenshot({ path: 'test-results/storefront-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: 'test-results/storefront-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: /add to bag/i }).first().click();
+  await page.getByRole('complementary').getByRole('button', { name: /proceed to checkout/i }).click();
+  await page.screenshot({ path: 'test-results/checkout-mobile.png', fullPage: true });
+});
