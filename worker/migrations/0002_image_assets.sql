@@ -1,0 +1,3 @@
+CREATE TABLE image_assets (id INTEGER PRIMARY KEY, product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE, alt_text TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE image_variants (id INTEGER PRIMARY KEY, image_asset_id INTEGER NOT NULL REFERENCES image_assets(id) ON DELETE CASCADE, width INTEGER NOT NULL CHECK(width IN (400,800,1200)), r2_key TEXT NOT NULL UNIQUE, content_type TEXT NOT NULL DEFAULT 'image/webp', byte_size INTEGER NOT NULL, UNIQUE(image_asset_id,width));
+CREATE INDEX image_assets_product_idx ON image_assets(product_id,created_at);
