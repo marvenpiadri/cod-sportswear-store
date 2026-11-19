@@ -16,6 +16,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run e2e
+      - name: Typecheck Worker
+        run: |
+          cd worker
+          npm install
+          npm run typecheck
       - name: Upload Playwright screenshots, traces and report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
