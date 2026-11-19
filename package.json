@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test --watch=false",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "browser": "playwright-cli"
   },
   "dependencies": {
     "@angular/common": "^21.0.0",
@@ -22,7 +23,8 @@
     "@angular/cli": "^21.0.0",
     "@angular/build": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
-    "typescript": "~5.9.3",
-    "@playwright/test": "^1.56.1"
+    "@playwright/cli": "^0.1.25",
+    "@playwright/test": "^1.56.1",
+    "typescript": "~5.9.3"
   }
 }
