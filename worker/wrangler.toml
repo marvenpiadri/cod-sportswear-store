@@ -1,0 +1,1 @@
+name = "cod-sportswear-api"\nmain = "src/index.ts"\ncompatibility_date = "2026-11-19"\n\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "cod-sportswear"\ndatabase_id = "REPLACE_AFTER_D1_CREATE"\n\n[[r2_buckets]]\nbinding = "PRODUCT_MEDIA"\nbucket_name = "cod-sportswear-media"\n
