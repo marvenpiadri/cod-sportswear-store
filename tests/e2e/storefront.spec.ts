@@ -55,7 +55,7 @@ test('COD checkout validates and captures customer details', async ({ page }) =>
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect(dialog.getByRole('heading', { name: /details captured/i })).toBeVisible();
-  await expect(dialog.getByText(/no order has been transmitted yet/i)).toBeVisible();
+  await expect(dialog.getByText(/order transmission is not configured yet/i)).toBeVisible();
 });
 
 test('checkout stays usable on a small viewport', async ({ page }) => {
