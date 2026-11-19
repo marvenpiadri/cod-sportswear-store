@@ -1,7 +1,7 @@
 export interface Env { DB: D1Database; PRODUCT_MEDIA: R2Bucket; ADMIN_PIN?: string; PUBLIC_MEDIA_BASE?: string; }
 const json=(data:unknown,status=200)=>Response.json(data,{status});
 const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');return new Response(response.body,{status:response.status,headers:h});};
-const authorized=(request:Request,env:Env)=>!!env.ADMIN_PIN&&request.headers.get('Authorization')===`Bearer ${env.ADMIN_TOKEN}`;
+const authorized=(request:Request,env:Env)=>!!env.ADMIN_PIN&&request.headers.get('Authorization')===`Bearer ${env.ADMIN_PIN}`;
 const mediaUrl=(env:Env,key:string)=>env.PUBLIC_MEDIA_BASE?`${env.PUBLIC_MEDIA_BASE.replace(/\/$/,'')}/${key}`:null;
 async function catalog(env:Env,activeOnly:boolean){
  const sql=activeOnly?"SELECT id,slug,name,description,price,status FROM products WHERE status='active' ORDER BY created_at DESC":"SELECT id,slug,name,description,price,status FROM products ORDER BY created_at DESC";
@@ -17,7 +17,7 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
   let body:any;try{body=await request.json();}catch{return cors(json({error:'Invalid JSON'},400));}
   const customer=body.customer||{},items=Array.isArray(body.items)?body.items:[];
   const name=String(customer.fullName||'').trim(),phone=String(customer.phone||'').trim(),whatsapp=String(customer.whatsapp||phone).trim(),city=String(customer.city||'').trim(),address=String(customer.address||'').trim(),note=String(customer.note||'').trim();
-  if(!name||name.length>120||!phone||phone.length>30||!/^\\+?[0-9\\s().-]{5,25}$/.test(phone)||!whatsapp||whatsapp.length>30||!/^\\+?[0-9\\s().-]{5,25}$/.test(whatsapp)||!city||city.length>100||!address||address.length>500||note.length>500||!items.length||items.length>30)return cors(json({error:'Please check customer details and cart items. Fields may be too long or phone numbers invalid.'},400));
+  if(!name||name.length>120||!phone||phone.length>30||!/^\+?[0-9\s().-]{5,25}$/.test(phone)||!whatsapp||whatsapp.length>30||!/^\+?[0-9\s().-]{5,25}$/.test(whatsapp)||!city||city.length>100||!address||address.length>500||note.length>500||!items.length||items.length>30)return cors(json({error:'Please check customer details and cart items. Fields may be too long or phone numbers invalid.'},400));
   const safeItems=[];for(const item of items){const id=Number(item.productId),qty=Number(item.quantity);if(!Number.isInteger(id)||id<1||!Number.isInteger(qty)||qty<1||qty>20)return cors(json({error:'Invalid cart item.'},400));const product:any=await env.DB.prepare("SELECT id,name,price FROM products WHERE id=? AND status='active'").bind(id).first();if(!product)return cors(json({error:'One of the products is no longer available.'},409));safeItems.push({...product,quantity:qty,lineTotal:product.price*qty});}
   const subtotal=safeItems.reduce((sum,item)=>sum+item.lineTotal,0);if(subtotal>10000000)return cors(json({error:'Order total is too high.'},400));
   const customerResult=await env.DB.prepare('INSERT INTO customers(full_name,phone,whatsapp_phone,city,address,delivery_note) VALUES(?,?,?,?,?,?)').bind(name,phone,whatsapp,city,address,note).run();const customerId=customerResult.meta.last_row_id;
