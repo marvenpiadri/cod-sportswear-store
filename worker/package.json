@@ -1,0 +1,1 @@
+{"name":"cod-store-api","private":true,"scripts":{"dev":"wrangler dev","deploy":"wrangler deploy"},"dependencies":{"hono":"^4.10.0"},"devDependencies":{"@cloudflare/workers-types":"^4.20261119.0","typescript":"^5.9.3","wrangler":"^4.45.0"}}
