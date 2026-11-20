@@ -90,7 +90,7 @@ test('monochrome admin panel exposes product creation and image controls', async
   await expect(panel.getByLabel(/5-digit PIN/i)).toBeVisible();
   await expect(panel.getByRole('button', { name: /create product/i })).toBeVisible();
   await expect(panel.getByRole('button', { name: /load.*refresh products/i })).toBeVisible();
-  await panel.getByRole('button', { name: '×' }).click();
+  await panel.getByRole('button', { name: 'Close admin panel' }).click();
   await expect(panel).toBeHidden();
 });
 
@@ -195,7 +195,7 @@ test('checkout retries reuse the same idempotency key after a transient failure'
   await page.getByRole('button', { name: 'ADMIN' }).click();
   const admin = page.getByRole('dialog', { name: /product management/i });
   await admin.getByLabel(/worker api url/i).fill('https://store-api.example');
-  await admin.getByRole('button', { name: '×' }).click();
+  await admin.getByRole('button', { name: 'Close admin panel' }).click();
   await page.getByRole('button', { name: /add to bag/i }).first().click();
   const bag = page.getByRole('complementary');
   await bag.getByRole('button', { name: /proceed to checkout/i }).click();
