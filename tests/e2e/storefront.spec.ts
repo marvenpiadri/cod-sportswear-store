@@ -178,3 +178,38 @@ test('catalog search filters products and resets pagination', async ({ page }) =
   await search.clear();
   await expect(page.getByRole('heading', { name: 'Essential Training Tee' })).toBeVisible();
 });
+
+
+test('checkout retries reuse the same idempotency key after a transient failure', async ({ page }) => {
+  const requestKeys: string[] = [];
+  await page.route('**/api/orders', async route => {
+    const body = route.request().postDataJSON(); requestKeys.push(body.idempotencyKey);
+    if (requestKeys.length === 1) {
+      await route.fulfill({ status: 503, json: { error: 'Temporary service issue. Try again.' } });
+      return;
+    }
+    await route.fulfill({ status: 201, json: { orderId: 81, orderNumber: 'COD-RETRY-81', total: 249, currency: 'MAD', status: 'pending' } });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'ADMIN' }).click();
+  const admin = page.getByRole('dialog', { name: /product management/i });
+  await admin.getByLabel(/worker api url/i).fill('https://store-api.example');
+  await admin.getByRole('button', { name: '×' }).click();
+  await page.getByRole('button', { name: /add to bag/i }).first().click();
+  const bag = page.getByRole('complementary');
+  await bag.getByRole('button', { name: /proceed to checkout/i }).click();
+  const checkout = page.getByRole('dialog');
+  await checkout.locator('input[name="fullName"]').fill('Retry Customer');
+  await checkout.locator('input[name="phone"]').fill('0612345678');
+  await checkout.locator('input[name="whatsapp"]').fill('0612345678');
+  await checkout.locator('input[name="city"]').fill('Rabat');
+  await checkout.locator('textarea[name="address"]').fill('10 Retry Street');
+  const submit = checkout.getByRole('button', { name: /review order details/i });
+  await submit.click();
+  await expect(checkout.getByText(/temporary service issue/i)).toBeVisible();
+  await submit.click();
+  await expect(checkout.getByRole('heading', { name: /order received — COD-RETRY-81/i })).toBeVisible();
+  expect(requestKeys).toHaveLength(2);
+  expect(requestKeys[0]).toBeTruthy();
+  expect(requestKeys[1]).toBe(requestKeys[0]);
+});

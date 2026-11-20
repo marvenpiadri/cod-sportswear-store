@@ -1,3 +1,3 @@
 # Architecture
 
-Angular standalone frontend; Cloudflare Worker API; D1; R2. API is the trust boundary. Browser never supplies trusted totals or stock. Inventory is auditable through stock movements. Order creation and inventory changes must be atomic/idempotent to prevent overselling. No privileged credentials in browser. WhatsApp V1 is user-driven wa.me messaging.
+Angular standalone frontend; Cloudflare Worker API; D1; R2. API is the trust boundary. Browser never supplies trusted totals or stock. Inventory is auditable through stock movements. Order creation and inventory changes are atomic. Checkout requests carry a unique idempotency key so retries and concurrent duplicate submissions return the original order rather than creating a second order. Inventory guards prevent overselling. No privileged credentials in browser. WhatsApp V1 is user-driven wa.me messaging.
