@@ -17,6 +17,10 @@ Independent single-store sportswear storefront for Morocco. Cash on delivery onl
 - Manual size/colour stock adjustments recorded in stock movements.
 - No analytics suite, multi-store features, warehouse/supplier/accounting workflows or automated WhatsApp messaging.
 
+## API safety
+- Sensitive API responses are explicitly non-cacheable.
+- Image upload form parsing, image descriptions and file payloads are validated before storage.
+
 ## Stack
 Angular, Cloudflare Worker, D1 (SQLite), R2 and Playwright.
 

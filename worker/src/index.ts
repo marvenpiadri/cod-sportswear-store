@@ -1,6 +1,6 @@
 export interface Env { DB: D1Database; PRODUCT_MEDIA: R2Bucket; ADMIN_PIN?: string; PUBLIC_MEDIA_BASE?: string; }
 const json=(data:unknown,status=200)=>Response.json(data,{status});
-const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');h.set('X-Content-Type-Options','nosniff');h.set('X-Frame-Options','DENY');h.set('Referrer-Policy','strict-origin-when-cross-origin');h.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');return new Response(response.body,{status:response.status,headers:h});};
+const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');h.set('X-Content-Type-Options','nosniff');h.set('X-Frame-Options','DENY');h.set('Referrer-Policy','strict-origin-when-cross-origin');h.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');h.set('Cache-Control','no-store');return new Response(response.body,{status:response.status,headers:h});};
 const authorized=(request:Request,env:Env)=>!!env.ADMIN_PIN&&request.headers.get('Authorization')===`Bearer ${env.ADMIN_PIN}`;
 const ADMIN_LIMIT=10, ADMIN_WINDOW_MS=15*60*1000;
 async function adminAuth(request:Request,env:Env){
@@ -75,12 +75,12 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
  }
  if(url.pathname==='/api/admin/images'&&request.method==='POST'){
   const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);
-  const form=await request.formData();const productId=Number(form.get('productId'));const altText=String(form.get('altText')||'');
+  let form:FormData;try{form=await request.formData();}catch{return cors(json({error:'Invalid image upload form.'},400));}const productId=Number(form.get('productId'));const altText=String(form.get('altText')||'').trim();if(altText.length>240)return cors(json({error:'Image description must be 240 characters or fewer.'},400));
   if(!Number.isInteger(productId)||productId<1)return cors(json({error:'Invalid product ID'},400));
   const product=await env.DB.prepare('SELECT id FROM products WHERE id=?').bind(productId).first();if(!product)return cors(json({error:'Product not found'},404));
-  const files=[400,800,1200].map(width=>({width,file:form.get(String(width))})).filter(x=>x.file instanceof File);
+  const files=[400,800,1200].map(width=>({width,file:form.get(String(width))})).filter(x=>x.file instanceof File);if(files.some(({file})=>!(file instanceof File)||file.size===0))return cors(json({error:'Image variants must be non-empty files.'},400));
   if(files.length<1)return cors(json({error:'Provide at least one WebP variant (400, 800 or 1200).'},400));
-  for(const {file} of files){const f=file as File;if(f.type!=='image/webp'||f.size>5*1024*1024)return cors(json({error:'Variants must be WebP and under 5 MB each.'},400));}
+  if(files.length>3)return cors(json({error:'Too many image variants.'},400));for(const {file} of files){const f=file as File;if(f.type!=='image/webp'||f.size>5*1024*1024)return cors(json({error:'Variants must be WebP and under 5 MB each.'},400));}
   const asset=await env.DB.prepare('INSERT INTO image_assets(product_id,alt_text) VALUES(?,?)').bind(productId,altText).run();const imageId=asset.meta.last_row_id;const stored:string[]=[];
   try{for(const {width,file} of files){const f=file as File;const key=`products/${productId}/images/${imageId}/${width}.webp`;await env.PRODUCT_MEDIA.put(key,f.stream(),{httpMetadata:{contentType:'image/webp',cacheControl:'public, max-age=31536000, immutable'}});stored.push(key);await env.DB.prepare('INSERT INTO image_variants(image_asset_id,width,r2_key,content_type,byte_size) VALUES(?,?,?,?,?)').bind(imageId,width,key,'image/webp',f.size).run();}}
   catch{await env.DB.prepare('DELETE FROM image_assets WHERE id=?').bind(imageId).run();await Promise.all(stored.map(k=>env.PRODUCT_MEDIA.delete(k)));return cors(json({error:'Storage operation failed.'},500));}

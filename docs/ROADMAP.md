@@ -14,6 +14,7 @@
 
 ## Remaining before launch
 - [x] Complete regression verification for inventory, CRM, catalog search and checkout submission safety.
+- [x] Harden API response cache policy and image-upload validation.
 - [ ] Verify idempotent checkout and concurrent stock contention against a configured Worker and real D1 database after migration 0006 is reviewed and applied.
 - [ ] Configure production Worker URL and owner WhatsApp destination.
 - [ ] Provision secrets, especially ADMIN_PIN, and review/apply migrations with explicit approval.
