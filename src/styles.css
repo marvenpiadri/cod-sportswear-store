@@ -47,3 +47,7 @@ body{background:var(--paper)}
 
 /* Fast catalog search, kept compact to preserve the grid-first layout */
 .catalog-tools{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:0 0 16px}.catalog-tools>span{font:10px 'DM Mono';letter-spacing:.1em;color:var(--muted);padding-bottom:10px}.catalog-search{display:flex;flex-direction:column;gap:7px;width:min(360px,100%)}.catalog-search span{font:9px 'DM Mono';letter-spacing:.12em;color:var(--muted)}.catalog-search input{width:100%;border:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);padding:12px 13px;font:12px 'DM Mono';outline-offset:2px}.catalog-search input:focus{outline:2px solid var(--accent)}.catalog-empty{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:55px 20px;text-align:center}.catalog-empty strong{font:12px 'DM Mono';letter-spacing:.14em}.catalog-empty p{font-size:13px;color:var(--muted)}@media(max-width:560px){.catalog-tools{align-items:flex-end}.catalog-search{width:75%}.catalog-tools>span{font-size:8px;white-space:nowrap}.catalog-search input{padding:11px 10px;font-size:10px}}
+
+
+/* Extra-small phone header: keep navigation and bag controls inside the viewport */
+@media(max-width:380px){.header{padding-left:4vw;padding-right:4vw}.header nav{display:none}.brand{font-size:19px}.header-actions{gap:8px}.admin-trigger{padding:7px 8px;font-size:8px}.cart-button{font-size:10px}}

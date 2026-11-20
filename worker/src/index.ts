@@ -1,6 +1,6 @@
 export interface Env { DB: D1Database; PRODUCT_MEDIA: R2Bucket; ADMIN_PIN?: string; PUBLIC_MEDIA_BASE?: string; }
 const json=(data:unknown,status=200)=>Response.json(data,{status});
-const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');return new Response(response.body,{status:response.status,headers:h});};
+const cors=(response:Response)=>{const h=new Headers(response.headers);h.set('Access-Control-Allow-Origin','*');h.set('Access-Control-Allow-Headers','Content-Type,Authorization');h.set('Access-Control-Allow-Methods','GET,POST,PATCH,OPTIONS');h.set('X-Content-Type-Options','nosniff');h.set('X-Frame-Options','DENY');h.set('Referrer-Policy','strict-origin-when-cross-origin');h.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');return new Response(response.body,{status:response.status,headers:h});};
 const authorized=(request:Request,env:Env)=>!!env.ADMIN_PIN&&request.headers.get('Authorization')===`Bearer ${env.ADMIN_PIN}`;
 const ADMIN_LIMIT=10, ADMIN_WINDOW_MS=15*60*1000;
 async function adminAuth(request:Request,env:Env){

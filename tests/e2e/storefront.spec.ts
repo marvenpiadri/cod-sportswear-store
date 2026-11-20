@@ -213,3 +213,15 @@ test('checkout retries reuse the same idempotency key after a transient failure'
   expect(requestKeys[0]).toBeTruthy();
   expect(requestKeys[1]).toBe(requestKeys[0]);
 });
+
+
+test('storefront fits a 320px phone viewport without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/');
+  const width = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(width).toBeLessThanOrEqual(320);
+  await expect(page.getByRole('button', { name: /add to bag/i }).first()).toBeVisible();
+  await page.getByRole('button', { name: 'ADMIN' }).click();
+  const admin = page.getByRole('dialog', { name: /product management/i });
+  await expect(admin.getByRole('button', { name: 'Close admin panel' })).toBeVisible();
+});

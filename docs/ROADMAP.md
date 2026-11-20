@@ -18,7 +18,7 @@
 - [ ] Configure production Worker URL and owner WhatsApp destination.
 - [ ] Provision secrets, especially ADMIN_PIN, and review/apply migrations with explicit approval.
 - [ ] Add the actual product catalog and approved product photography.
-- [ ] Finish responsive/accessibility/SEO review and production configuration checks.
+- [ ] Finish full accessibility/SEO review and production configuration checks. Extra-small phone overflow coverage and API security headers are implemented.
 - [ ] Verify backup and recovery procedures.
 - [ ] Perform end-to-end production checkout and WhatsApp handoff verification after authorization.
 
