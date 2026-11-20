@@ -19,7 +19,8 @@
 - [ ] Provision secrets, especially ADMIN_PIN, and review/apply migrations with explicit approval.
 - [ ] Add the actual product catalog and approved product photography.
 - [ ] Finish full accessibility/SEO review and production configuration checks. Extra-small phone overflow coverage and API security headers are implemented.
-- [ ] Verify backup and recovery procedures.
+- [x] Document D1 export/Time Travel and R2 backup/restore procedures.
+- [ ] Perform a restore drill against separate non-production resources.
 - [ ] Perform end-to-end production checkout and WhatsApp handoff verification after authorization.
 
 Do not deploy or apply production migrations without explicit approval.
