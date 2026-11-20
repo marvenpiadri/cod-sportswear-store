@@ -11,7 +11,7 @@ Independent single-store sportswear storefront for Morocco. Cash on delivery onl
 - WhatsApp is a customer-driven handoff; messages are not automatically sent by an API.
 
 ## Lightweight owner CRM
-- PIN-gated product creation, catalog refresh and R2 image upload.
+- PIN-gated product creation, editing, draft/active/archive visibility, catalog refresh and R2 image upload.
 - Order archive with order status updates.
 - New-order notification inbox with unread/read state.
 - Manual size/colour stock adjustments recorded in stock movements.

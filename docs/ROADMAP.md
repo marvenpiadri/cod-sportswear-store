@@ -5,7 +5,7 @@
 - [x] Product details, size/colour variants, stock visibility and variant-aware cart.
 - [x] COD checkout with server-side order persistence and WhatsApp customer handoff.
 - [x] Cloudflare Worker API, D1 catalog/orders, R2 product image pipeline and WebP variants.
-- [x] PIN-gated product creation, image upload, order archive and order-status updates.
+- [x] PIN-gated product creation/editing, image upload, order archive and order-status updates.
 - [x] Checkout-created CRM notifications with read state and an owner inbox.
 - [x] Manual variant stock adjustments with an auditable stock movement record.
 - [x] Persistent admin PIN and public checkout rate limiting.

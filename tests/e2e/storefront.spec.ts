@@ -226,3 +226,32 @@ test('storefront fits a 320px phone viewport without horizontal overflow', async
   const admin = page.getByRole('dialog', { name: /product management/i });
   await expect(admin.getByRole('button', { name: 'Close admin panel' })).toBeVisible();
 });
+
+
+test('admin can edit a product price, description and visibility', async ({ page }) => {
+  let saved: any = null;
+  await page.route('**/api/admin/products', async route => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ json: [{ id: 9, name: 'Training Tee', description: 'Original description', price: 249, status: 'draft', slug: 'training-tee', variants: [] }] });
+      return;
+    }
+    saved = route.request().postDataJSON();
+    await route.fulfill({ json: saved });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'ADMIN' }).click();
+  const panel = page.getByRole('dialog', { name: /product management/i });
+  await panel.getByLabel(/worker api url/i).fill('https://store-api.example');
+  await panel.getByLabel(/5-digit PIN/i).fill('12345');
+  await panel.getByRole('button', { name: /load.*refresh products/i }).click();
+  const product = panel.locator('.admin-product').filter({ hasText: 'Training Tee' });
+  const editor = product.locator('form.product-edit-form');
+  await editor.getByLabel('Product name').fill('Training Tee V2');
+  await editor.getByLabel('Price (MAD)').fill('299');
+  await editor.getByLabel('Description').fill('Updated training description');
+  await editor.getByLabel('Visibility').selectOption('active');
+  await editor.getByRole('button', { name: 'SAVE PRODUCT' }).click();
+  await expect.poll(() => saved?.price).toBe(299);
+  expect(saved.name).toBe('Training Tee V2');
+  expect(saved.status).toBe('active');
+});
