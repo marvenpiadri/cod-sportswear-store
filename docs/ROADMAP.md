@@ -2,6 +2,7 @@
 
 ## Current implementation
 - [x] Angular storefront, compact product-first layout and responsive grid.
+- [x] Product details dialog using saved catalog descriptions.
 - [x] Cart, quantity controls and subtotal.
 - [x] COD customer-details checkout.
 - [x] Worker API, D1 order persistence and product catalog endpoints.

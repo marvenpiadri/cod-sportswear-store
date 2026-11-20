@@ -118,3 +118,13 @@ test('admin can update an order status from the archive', async ({ page }) => {
   await expect.poll(() => updatedStatus).toBe('confirmed');
   await expect(order.getByLabel(/order status/i)).toHaveValue('confirmed');
 });
+
+
+test('product details can be opened and added to the bag', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /view details/i }).first().click();
+  const dialog = page.getByRole('dialog', { name: /product details/i });
+  await expect(dialog.getByRole('heading', { name: 'Essential Training Tee' })).toBeVisible();
+  await dialog.getByRole('button', { name: /add to bag/i }).click();
+  await expect(page.getByRole('complementary').getByRole('heading', { name: /your bag \(1\)/i })).toBeVisible();
+});
