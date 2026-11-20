@@ -12,7 +12,7 @@ Independent single-store sportswear storefront for Morocco. Cash on delivery onl
 
 ## Lightweight owner CRM
 - PIN-gated product creation, editing, draft/active/archive visibility, catalog refresh and R2 image upload.
-- Order archive with order status updates.
+- Searchable order archive by order number, status and customer details, with order status updates.
 - New-order notification inbox with unread/read state.
 - Manual size/colour stock adjustments recorded in stock movements.
 - No analytics suite, multi-store features, warehouse/supplier/accounting workflows or automated WhatsApp messaging.

@@ -255,3 +255,21 @@ test('admin can edit a product price, description and visibility', async ({ page
   expect(saved.name).toBe('Training Tee V2');
   expect(saved.status).toBe('active');
 });
+
+
+test('admin can search orders by customer details', async ({ page }) => {
+  let query = '';
+  await page.route('**/api/admin/orders*', async route => {
+    const url = new URL(route.request().url()); query = url.searchParams.get('q') || '';
+    await route.fulfill({ json: query.toLowerCase() === 'rabat' ? [{ id: 73, order_number: 'COD-RABAT-73', total: 379, status: 'pending', created_at: '2026-11-20', full_name: 'Search Customer', phone: '0612345678', whatsapp_phone: '212612345678', city: 'Rabat', address: 'Agdal' }] : [] });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'ADMIN' }).click();
+  const panel = page.getByRole('dialog', { name: /product management/i });
+  await panel.getByLabel(/worker api url/i).fill('https://store-api.example');
+  await panel.getByLabel(/5-digit PIN/i).fill('12345');
+  await panel.getByLabel('Search orders and customers').fill('rabat');
+  await panel.getByRole('button', { name: /search orders/i }).click();
+  await expect.poll(() => query).toBe('rabat');
+  await expect(panel.getByText('COD-RABAT-73')).toBeVisible();
+});
