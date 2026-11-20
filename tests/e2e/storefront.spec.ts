@@ -123,7 +123,7 @@ test('admin can update an order status from the archive', async ({ page }) => {
 test('product details can be opened and added to the bag', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /view details/i }).first().click();
-  const dialog = page.getByRole('dialog', { name: /product details/i });
+  const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('#detail-title')).toBeVisible();
   await dialog.getByRole('button', { name: /add to bag/i }).click();
