@@ -164,3 +164,17 @@ test('admin can read checkout notifications and adjust variant stock', async ({ 
   await panel.getByRole('button', { name: 'Increase stock for M Black' }).click();
   await expect.poll(() => stockDelta).toBe(1);
 });
+
+
+test('catalog search filters products and resets pagination', async ({ page }) => {
+  await page.goto('/');
+  const search = page.getByRole('textbox', { name: 'Search products' });
+  await search.fill('hoodie');
+  await expect(page.getByRole('heading', { name: 'Performance Hoodie' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Essential Training Tee' })).toBeHidden();
+  await expect(page.getByText('1 MATCHING')).toBeVisible();
+  await search.fill('nothing matches this');
+  await expect(page.getByText('NO MATCHES FOUND')).toBeVisible();
+  await search.clear();
+  await expect(page.getByRole('heading', { name: 'Essential Training Tee' })).toBeVisible();
+});

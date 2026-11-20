@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Implemented V1 capabilities
-- [x] Responsive Angular storefront with compact, grid-first catalog and pagination.
+- [x] Responsive Angular storefront with compact, grid-first catalog, search and pagination.
 - [x] Product details, size/colour variants, stock visibility and variant-aware cart.
 - [x] COD checkout with server-side order persistence and WhatsApp customer handoff.
 - [x] Cloudflare Worker API, D1 catalog/orders, R2 product image pipeline and WebP variants.
