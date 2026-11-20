@@ -3,20 +3,22 @@
 Independent single-store sportswear storefront for Morocco. Cash on delivery only. Currency: MAD.
 
 ## Customer experience
-- Browse the product catalog, grid, pagination and cart.
+- Browse a responsive grid catalog with pagination, product details and size/colour options.
+- See available variant stock and add distinct variants to the cart.
 - Collect customer name, phone, WhatsApp, city, address and optional delivery note.
 - COD only; no online payment.
-- Orders are stored by the Worker in D1 when the API is configured.
-- WhatsApp is a customer-driven handoff; do not claim messages are automatically sent or delivered.
+- Orders are validated and stored by the Worker in D1.
+- WhatsApp is a customer-driven handoff; messages are not automatically sent by an API.
 
 ## Lightweight owner CRM
-- PIN-gated product creation and catalog refresh.
-- Product image processing/upload to R2.
-- Read-only order history archive.
-- No order-status workflow, notification inbox, automated WhatsApp API or multi-store features in this scope.
+- PIN-gated product creation, catalog refresh and R2 image upload.
+- Order archive with order status updates.
+- New-order notification inbox with unread/read state.
+- Manual size/colour stock adjustments recorded in stock movements.
+- No analytics suite, multi-store features, warehouse/supplier/accounting workflows or automated WhatsApp messaging.
 
 ## Stack
 Angular, Cloudflare Worker, D1 (SQLite), R2 and Playwright.
 
 ## Not in V1
-Online payments, multi-store, warehouse/supplier/accounting workflows, complex CRM or automated WhatsApp messaging.
+Online payments, multi-store, complex warehouse management, supplier/accounting workflows and automated WhatsApp messaging.

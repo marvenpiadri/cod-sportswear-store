@@ -129,3 +129,38 @@ test('product details can be opened and added to the bag', async ({ page }) => {
   await dialog.getByRole('button', { name: /add to bag/i }).click();
   await expect(page.getByRole('complementary').getByRole('heading', { name: /your bag \(1\)/i })).toBeVisible();
 });
+
+
+test('admin can read checkout notifications and adjust variant stock', async ({ page }) => {
+  let stockDelta = 0;
+  let readId = 0;
+  await page.route('**/api/admin/notifications', async route => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({ json: [{ id: 7, order_id: 42, title: 'New COD order', message: 'A new order COD-TEST-42 has been placed.', is_read: 0, created_at: '2026-11-20 10:00:00' }] });
+      return;
+    }
+    const body = route.request().postDataJSON(); readId = body.id;
+    await route.fulfill({ json: { id: body.id, is_read: 1 } });
+  });
+  await page.route('**/api/admin/products', async route => {
+    if (route.request().method() === 'GET') await route.fulfill({ json: [{ id: 3, name: 'Training Tee', price: 249, status: 'active', slug: 'training-tee', variants: [{ id: 31, sku: 'TEE-M-BLACK', size: 'M', color: 'Black', stock: 4 }] }] });
+    else await route.fulfill({ json: { id: 4, name: 'Created' } });
+  });
+  await page.route('**/api/admin/products/variants/stock', async route => {
+    const body = route.request().postDataJSON(); stockDelta = body.delta;
+    await route.fulfill({ json: { variantId: body.variantId, delta: body.delta, stock: 5, stockMovementRecorded: true } });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'ADMIN' }).click();
+  const panel = page.getByRole('dialog', { name: /product management/i });
+  await panel.getByLabel(/worker api url/i).fill('https://store-api.example');
+  await panel.getByLabel(/5-digit PIN/i).fill('12345');
+  await panel.getByRole('button', { name: /load notifications/i }).click();
+  const notification = panel.locator('.admin-notification').filter({ hasText: 'COD-TEST-42' });
+  await expect(notification).toBeVisible();
+  await notification.getByRole('button', { name: /mark read/i }).click();
+  await expect.poll(() => readId).toBe(7);
+  await panel.getByRole('button', { name: /load.*refresh products/i }).click();
+  await panel.getByRole('button', { name: 'Increase stock for M Black' }).click();
+  await expect.poll(() => stockDelta).toBe(1);
+});
