@@ -6,16 +6,16 @@ Images are resized and encoded in the browser as WebP (quality 0.82) at 400px, 8
 
 The Wrangler config currently targets the temporary D1 and R2 resources. The public R2 development URL is configured as PUBLIC_MEDIA_BASE.
 
-Before using the upload endpoint, apply the migration and set a secret:
+Before using the upload endpoint, apply the migration and set the admin PIN secret:
 
 ```bash
 cd worker
 npx wrangler d1 migrations apply mokiko --remote
-npx wrangler secret put ADMIN_TOKEN
+npx wrangler secret put ADMIN_PIN
 npx wrangler deploy
 ```
 
-Do not commit the ADMIN_TOKEN. It must be a long random secret. The upload endpoint is POST /api/admin/images and requires Authorization: Bearer <token>. Multipart fields: productId, altText and one or more WebP files named 400, 800, 1200. Each file must be <= 5 MB. A product must exist before its images can be uploaded.
+Do not commit the ADMIN_PIN. It must be a unique five-digit PIN; the Worker applies per-IP attempt throttling. The upload endpoint is POST /api/admin/images and requires Authorization: Bearer <token>. Multipart fields: productId, altText and one or more WebP files named 400, 800, 1200. Each file must be <= 5 MB. A product must exist before its images can be uploaded.
 
 ## Later client migration
 

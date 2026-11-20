@@ -99,7 +99,7 @@ test('admin can update an order status from the archive', async ({ page }) => {
   let updatedStatus = '';
   await page.route('**/api/admin/orders', async route => {
     if (route.request().method() === 'GET') {
-      await route.fulfill({ json: [{ id: 42, order_number: 'COD-TEST-42', total: 498, status: 'pending', created_at: '2026-11-20', full_name: 'Test Customer', phone: '0612345678', whatsapp_phone: '0612345678', city: 'Rabat', address: 'Test address' }] });
+      await route.fulfill({ json: [{ id: 42, order_number: 'COD-TEST-42', total: 498, status: 'pending', created_at: '2026-11-20', full_name: 'Test Customer', phone: '0612345678', whatsapp_phone: '212612345678', city: 'Rabat', address: 'Test address' }] });
       return;
     }
     const body = route.request().postDataJSON();
@@ -114,6 +114,7 @@ test('admin can update an order status from the archive', async ({ page }) => {
   await panel.getByRole('button', { name: /load history/i }).click();
   const order = panel.locator('.admin-product').filter({ hasText: 'COD-TEST-42' });
   await expect(order).toBeVisible();
+  await expect(order.getByRole('link', { name: /contact customer on whatsapp/i })).toHaveAttribute('href', /wa\.me\/212612345678/);
   await order.getByLabel(/order status/i).selectOption('confirmed');
   await expect.poll(() => updatedStatus).toBe('confirmed');
   await expect(order.getByLabel(/order status/i)).toHaveValue('confirmed');

@@ -9,4 +9,4 @@ Independent cash-on-delivery sportswear store and lightweight order/inventory ma
 - Cloudflare R2 (product media)
 - WhatsApp-assisted order confirmation and customer communication
 
-See `docs/` for the architecture and product scope.
+See `docs/` for the architecture, product scope, WhatsApp handoff and deployment notes. The Wrangler resources are a temporary test setup; do not deploy or apply migrations to a production database without explicit approval.
