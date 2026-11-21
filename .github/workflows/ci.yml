@@ -14,8 +14,11 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
-      - name: Typecheck Worker
+      - name: Verify storefront assets
+        run: test -f dist/store/browser/index.html
+      - name: Typecheck and validate Worker deployment
         run: |
           cd worker
           npm install
           npm run typecheck
+          npx wrangler deploy --dry-run --config ../wrangler.toml
