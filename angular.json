@@ -21,8 +21,7 @@
             "tsConfig": "tsconfig.app.json",
             "styles": ["src/styles.css"],
             "assets": [
-              { "glob": "**/*", "input": "src/assets", "output": "/assets" },
-              { "glob": "_redirects", "input": "deploy/pages", "output": "/" }
+              { "glob": "**/*", "input": "src/assets", "output": "/assets" }
             ]
           },
           "configurations": {
