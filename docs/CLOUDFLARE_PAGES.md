@@ -1,20 +1,45 @@
-# Cloudflare Pages deployment
+# Cloudflare Workers deployment
 
-## Frontend
+The storefront and API are deployed together as the `cod-sportswear-store` Worker.
 
-- Framework preset: None
+## Production configuration
+
+- Worker name: `cod-sportswear-store`
 - Build command: `npm run build`
-- Build output directory: `dist/store/browser`
-- Root directory: `/`
+- Static assets directory: `dist/store/browser`
+- Wrangler configuration: repository-root `wrangler.toml`
 
-The Angular build generates a browser bundle under `dist/store/browser`. The `_redirects` file is copied into the root of that output to allow client-side routes (including `/admin`) to load directly.
+The root Wrangler configuration attaches the Angular browser build as Worker static assets. Cloudflare serves storefront files directly and uses the single-page application fallback for client-side routes such as `/admin`. Requests under `/api/*` are sent to the Worker fetch handler.
 
-## API connection
+## Services
 
-The Pages frontend is static and does not host the API. Keep the existing API Worker, D1 and R2 deployment separate. In the Admin connection settings, set the deployed API Worker URL (including `https://`) and save it. The frontend will use that API URL for catalog, orders, authentication, inventory and image operations. Ensure the Worker allows requests from the Pages domain via CORS.
+- D1 binding: `DB` (existing `mokiko` database)
+- R2 binding: `PRODUCT_MEDIA` (existing `mokiko` bucket)
+- API health endpoint: `/api/health`
+- Public catalog endpoint: `/api/products`
 
-## Important
+## Deployment
 
-- This change does not deploy or alter the API Worker, D1 database or R2 bucket.
-- Do not deploy/apply database migrations without approval.
-- Test the Pages site, `/admin`, API health, admin PIN login, catalog, checkout, stock management and image uploads after deployment.
+Build the Angular app before deploying the Worker so `dist/store/browser` exists:
+
+```sh
+npm install
+npm run build
+cd worker
+npm install
+npx wrangler deploy --config ../wrangler.toml
+```
+
+The Worker configuration is also mirrored in `worker/wrangler.toml` for deployments launched from the worker directory.
+
+## Verification
+
+After deployment, verify:
+
+1. The Worker root URL loads the storefront.
+2. `/admin` loads the admin application directly.
+3. `/api/health` returns the API health response.
+4. `/api/products` returns the public catalog.
+5. Admin PIN login, checkout, stock management and image uploads continue to work.
+
+Do not apply database migrations as part of this deployment; the existing D1 database and R2 bucket are retained.
