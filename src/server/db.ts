@@ -22,7 +22,7 @@ export interface SqlExecResult<T = Record<string, unknown>> {
 }
 
 export interface DbStatus {
-  mode: 'cloudflare-d1' | 'local-sqlite';
+  mode: 'cloudflare-d1';
   configured: boolean;
   databaseName: string;
   databaseId: string;
@@ -39,7 +39,7 @@ export interface DbClient {
 }
 
 let dbPromise: Promise<DbClient> | null = null;
-let cachedMode: 'cloudflare-d1' | 'local-sqlite' | null = null;
+let cachedMode: 'cloudflare-d1' | null = null;
 
 export function getDbStatus(): DbStatus {
   const d1 = getD1Config();
@@ -119,67 +119,6 @@ function createD1Adapter(): DbClient {
   } as DbClient & { imageKeyCol: 'r2_key' | 'storage_key' };
 }
 
-function createLocalSqliteAdapter(db: DatabaseSync): DbClient {
-  let detectedImageKeyCol: 'r2_key' | 'storage_key' = 'storage_key';
-
-  return {
-    mode: 'local-sqlite',
-    get imageKeyCol() {
-      return detectedImageKeyCol;
-    },
-    set imageKeyCol(val: 'r2_key' | 'storage_key') {
-      detectedImageKeyCol = val;
-    },
-    async all<T = Record<string, unknown>>(sql: string, params: SqlParam[] = []): Promise<T[]> {
-      return db.prepare(sql).all(...params) as T[];
-    },
-    async first<T = Record<string, unknown>>(
-      sql: string,
-      params: SqlParam[] = []
-    ): Promise<T | null> {
-      return (db.prepare(sql).get(...params) as T | undefined) ?? null;
-    },
-    async run(sql: string, params: SqlParam[] = []): Promise<SqlResultMeta> {
-      const info = db.prepare(sql).run(...params);
-      return {
-        changes: Number(info.changes ?? 0),
-        last_row_id: Number(info.lastInsertRowid ?? 0),
-      };
-    },
-    async batch(statements: SqlStatement[]): Promise<SqlExecResult[]> {
-      if (!statements.length) return [];
-      const out: SqlExecResult[] = [];
-      db.exec('BEGIN IMMEDIATE');
-      try {
-        for (const stmt of statements) {
-          const trimmed = stmt.sql.trim().toUpperCase();
-          const params = stmt.params ?? [];
-          if (trimmed.startsWith('SELECT') || trimmed.startsWith('PRAGMA')) {
-            const rows = db.prepare(stmt.sql).all(...params) as Array<Record<string, unknown>>;
-            out.push({
-              results: rows,
-              meta: { changes: 0, last_row_id: 0 },
-            });
-          } else {
-            const info = db.prepare(stmt.sql).run(...params);
-            out.push({
-              results: [],
-              meta: {
-                changes: Number(info.changes ?? 0),
-                last_row_id: Number(info.lastInsertRowid ?? 0),
-              },
-            });
-          }
-        }
-        db.exec('COMMIT');
-        return out;
-      } catch (err) {
-        db.exec('ROLLBACK');
-        throw err;
-      }
-    },
-  } as DbClient & { imageKeyCol: 'r2_key' | 'storage_key' };
-}
 
 async function ensureSchemaAndSeed(
   client: DbClient & { imageKeyCol: 'r2_key' | 'storage_key' }
