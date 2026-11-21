@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "ng serve --host 0.0.0.0 --port 3000",
+    "dev": "ng serve",
     "start": "node dist/store/server/server.mjs",
     "build": "ng build",
     "test": "ng test --watch=false",
