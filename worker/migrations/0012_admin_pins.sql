@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS admin_pins (
+  id INTEGER PRIMARY KEY,
+  pin INTEGER NOT NULL
+);
+
+INSERT OR IGNORE INTO admin_pins (id, pin) VALUES (1, 45206);
