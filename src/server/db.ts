@@ -30,7 +30,7 @@ export interface DbStatus {
 }
 
 export interface DbClient {
-  readonly mode: 'cloudflare-d1' | 'local-sqlite';
+  readonly mode: 'cloudflare-d1';
   readonly imageKeyCol: 'r2_key' | 'storage_key';
   all<T = Record<string, unknown>>(sql: string, params?: SqlParam[]): Promise<T[]>;
   first<T = Record<string, unknown>>(sql: string, params?: SqlParam[]): Promise<T | null>;
@@ -43,7 +43,7 @@ let cachedMode: 'cloudflare-d1' | null = null;
 
 export function getDbStatus(): DbStatus {
   const d1 = getD1Config();
-  const mode = cachedMode ?? (d1.configured ? 'cloudflare-d1' : 'local-sqlite');
+  const mode = cachedMode ?? 'cloudflare-d1';
   return {
     mode,
     configured: d1.configured,
@@ -123,7 +123,7 @@ function createD1Adapter(): DbClient {
 async function ensureSchemaAndSeed(
   client: DbClient & { imageKeyCol: 'r2_key' | 'storage_key' }
 ): Promise<void> {
-  const defaultVariantKeyCol = client.mode === 'cloudflare-d1' ? 'r2_key' : 'storage_key';
+  const defaultVariantKeyCol = 'r2_key';
 
   const ddlStatements: SqlStatement[] = [
     {
