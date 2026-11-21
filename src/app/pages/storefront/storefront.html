@@ -1,0 +1,667 @@
+@if (!announcementDismissed()) {
+  <div class="announcement-bar">
+    <div class="announcement-inner">
+      <span class="announcement-copy">
+        @if (isAr()) {
+          توصيل مجاني في جميع أنحاء المغرب ابتداءً من {{ store.formatMAD(store.freeDeliveryThreshold) }} · الدفع عند الاستلام
+        } @else {
+          Livraison express offerte au Maroc dès {{ store.formatMAD(store.freeDeliveryThreshold) }} · Paiement à la livraison
+        }
+      </span>
+
+      <div class="announcement-right">
+        <div class="lang-switch" role="group" [attr.aria-label]="isAr() ? 'تغيير اللغة' : 'Changer de langue'">
+          <button
+            type="button"
+            class="lang-btn"
+            [class.active]="store.lang() === 'fr'"
+            (click)="store.setLang('fr')"
+          >
+            FR
+          </button>
+          <span aria-hidden="true">/</span>
+          <button
+            type="button"
+            class="lang-btn"
+            [class.active]="store.lang() === 'ar'"
+            (click)="store.setLang('ar')"
+          >
+            العربية
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="announcement-dismiss"
+          [attr.aria-label]="isAr() ? 'إغلاق الإشعار' : 'Fermer le bandeau'"
+          (click)="announcementDismissed.set(true)"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Strictly 3-Zone Header -->
+<header class="store-header">
+  <a class="brand-mark" href="#top">MOKIKO<span>SPORT</span></a>
+
+  <nav class="store-nav" [attr.aria-label]="isAr() ? 'القائمة الرئيسية' : 'Navigation principale'">
+    <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('All')">
+      {{ isAr() ? 'المجموعة' : 'Collection' }}
+    </a>
+    <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('Tops')">
+      {{ isAr() ? 'تيشيرتات' : 'Hauts' }}
+    </a>
+    <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('Layers')">
+      {{ isAr() ? 'هوديز' : 'Vestes & Sweats' }}
+    </a>
+    <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('Bottoms')">
+      {{ isAr() ? 'سراويل وشورتات' : 'Bas' }}
+    </a>
+    <a href="#delivery" (click)="$event.preventDefault(); scrollToSection('delivery')">
+      {{ isAr() ? 'التوصيل' : 'Livraison' }}
+    </a>
+  </nav>
+
+  <div class="header-cta-zone">
+    @if (store.priceVisible()) {
+      <button type="button" class="bag-trigger" (click)="store.cartOpen.set(true)">
+        <span>{{ isAr() ? 'السلة' : 'Panier' }}</span>
+        <span class="bag-count tabular">({{ store.cartCount() }})</span>
+      </button>
+    } @else {
+      <a class="bag-trigger" [href]="store.buildGeneralWhatsAppUrl()" target="_blank" rel="noopener">
+        WhatsApp
+      </a>
+    }
+  </div>
+</header>
+
+<main id="top">
+  <!-- Section 1: High-Contrast Athletic Hero -->
+  <section class="hero-athletic" id="lookbook">
+    <div class="hero-copy-col">
+      <p class="eyebrow-kicker">
+        {{ isAr() ? 'مجموعة الأداء · المغرب' : 'Nouvelle Saison · Équipement Training' }}
+      </p>
+
+      <h1 class="hero-display">
+        @if (isAr()) {
+          مصمم للحركة.<br>
+          <span>جاهز لكل حصة.</span>
+        } @else {
+          CONÇU POUR<br>
+          <span>LE MOUVEMENT.</span>
+        }
+      </h1>
+
+      <p class="hero-lead">
+        @if (isAr()) {
+          تيشيرتات تقنية، هوديز وملابس رياضية عالية الجودة للتدريب اليومي. اطلب الآن وادفع نقداً عند الاستلام في جميع مدن المغرب.
+        } @else {
+          Textiles techniques respirants, coupes athlétiques et finitions durables pour vos séances quotidiennes. Commandez en ligne et payez à la livraison partout au Maroc.
+        }
+      </p>
+
+      <div class="hero-actions">
+        <button type="button" class="btn-primary" (click)="scrollToSection('collection')">
+          {{ isAr() ? 'اكتشف المجموعة' : 'Découvrir la collection' }}
+        </button>
+        <a
+          class="btn-secondary"
+          [href]="store.buildGeneralWhatsAppUrl()"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ isAr() ? 'اطلب عبر واتساب' : 'Commander sur WhatsApp' }}
+        </a>
+      </div>
+
+      <div class="hero-assurances">
+        <span>{{ isAr() ? 'الدفع عند الاستلام' : 'Paiement à la livraison' }}</span>
+        <span aria-hidden="true">·</span>
+        <span>{{ isAr() ? 'شحن خلال 24-48 ساعة' : 'Expédition 24h–48h' }}</span>
+        <span aria-hidden="true">·</span>
+        <span>{{ isAr() ? 'تبديل مضمون خلال 7 أيام' : 'Échange sous 7 jours' }}</span>
+      </div>
+    </div>
+
+    <div class="hero-media-col">
+      <div class="hero-frame">
+        <img
+          src="/assets/images/hero_editorial_lookbook_1795239482040.jpg"
+          [alt]="isAr() ? 'مجموعة موكيكو سبورت للتدريب' : 'Tenue de training Mokiko Sport t-shirt technique et jogger stretch'"
+          referrerpolicy="no-referrer"
+        />
+        <div class="hero-scrim">
+          <span class="hero-caption">
+            {{ isAr() ? 'تيشيرت التدريب التقني + سروال ستريتش' : 'T-Shirt Training Technique · Jogger Stretch' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Collection & Dynamic Color Swatches -->
+  <section class="collection-section" id="collection">
+    <div class="section-header-row">
+      <div>
+        <p class="eyebrow-kicker">
+          {{ isAr() ? 'الأكثر طلباً' : 'Équipement Sportif' }}
+        </p>
+        <h2 class="section-heading">
+          {{ isAr() ? 'تشكيلة موكيكو سبورت' : 'Collection Mokiko Sport' }}
+        </h2>
+      </div>
+      <span class="collection-counter tabular">
+        {{ store.filteredProducts().length }}
+        @if (isAr()) {
+          {{ store.filteredProducts().length === 1 ? 'منتج' : 'منتجات' }}
+        } @else {
+          {{ store.filteredProducts().length === 1 ? 'article' : 'articles' }}
+        }
+      </span>
+    </div>
+
+    <div class="catalog-toolbar">
+      <div class="category-tabs" role="tablist" [attr.aria-label]="isAr() ? 'الفئات' : 'Catégories'">
+        @for (cat of categories; track cat) {
+          <button
+            type="button"
+            role="tab"
+            class="cat-tab"
+            [class.active]="store.activeCategory() === cat"
+            [attr.aria-selected]="store.activeCategory() === cat"
+            (click)="store.setCategory(cat)"
+          >
+            {{ categoryLabel(cat) }}
+          </button>
+        }
+      </div>
+
+      <div class="toolbar-inputs">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+          <input
+            type="search"
+            [attr.aria-label]="isAr() ? 'البحث عن منتج' : 'Rechercher un article'"
+            [formControl]="searchControl"
+            [placeholder]="isAr() ? 'ابحث عن منتج أو خامة...' : 'Rechercher un article, matière...'"
+          />
+        </div>
+
+        <label class="sort-select-wrap">
+          <span class="sr-only">{{ isAr() ? 'ترتيب المنتجات' : 'Trier les articles' }}</span>
+          <select
+            [attr.aria-label]="isAr() ? 'ترتيب المنتجات' : 'Trier les articles'"
+            [value]="store.sortOrder()"
+            (change)="onSortChange($event)"
+          >
+            <option value="featured">{{ isAr() ? 'الترتيب: المختارة' : 'Trier : En vedette' }}</option>
+            <option value="price-asc">{{ isAr() ? 'السعر: من الأقل إلى الأعلى' : 'Prix : croissant' }}</option>
+            <option value="price-desc">{{ isAr() ? 'السعر: من الأعلى إلى الأقل' : 'Prix : décroissant' }}</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    @if (store.paginatedProducts().length) {
+      <div class="studio-grid">
+        @for (product of store.paginatedProducts(); track product.id) {
+          <article class="studio-card" (click)="quickView(product)">
+            <div class="studio-media">
+              @if (!isImageFailed(product)) {
+                <img
+                  [src]="cardImageUrl(product)"
+                  [alt]="product.name + (activeCardColorLabel(product) ? ' · ' + activeCardColorLabel(product) : '')"
+                  referrerpolicy="no-referrer"
+                  (error)="markImageFailed(cardImageUrl(product))"
+                />
+              } @else {
+                <div class="media-fallback">
+                  <span>{{ product.name }}</span>
+                </div>
+              }
+              <button
+                type="button"
+                class="card-quick-bar"
+                (click)="$event.stopPropagation(); quickView(product)"
+              >
+                @if (store.priceVisible()) {
+                  {{ isAr() ? 'اختيار المقاس واللون' : 'Choisir la taille' }}
+                } @else {
+                  {{ isAr() ? 'عرض التفاصيل' : 'Voir le produit' }}
+                }
+              </button>
+            </div>
+
+            <div class="studio-meta">
+              <div class="studio-kicker">
+                <span>{{ categoryLabel(product.category) }}</span>
+                @if (product.tag) {
+                  <span aria-hidden="true">·</span>
+                  <span>{{ product.tag }}</span>
+                }
+              </div>
+
+              <div class="studio-title-row">
+                <h3>{{ product.name }}</h3>
+                @if (store.priceVisible() && product.price !== null) {
+                  <span class="studio-price tabular">{{ store.formatMAD(product.price) }}</span>
+                } @else {
+                  <span class="studio-price-muted">
+                    {{ isAr() ? 'عند الاستفسار' : 'Sur demande' }}
+                  </span>
+                }
+              </div>
+
+              @if (cardSwatches(product).length) {
+                <div class="card-swatch-row" (click)="$event.stopPropagation()">
+                  <div
+                    class="card-swatches"
+                    role="group"
+                    [attr.aria-label]="isAr() ? 'الألوان المتوفرة' : 'Coloris disponibles'"
+                  >
+                    @for (sw of cardSwatches(product); track sw.hex) {
+                      <button
+                        type="button"
+                        class="card-swatch-btn"
+                        [class.active]="activeCardColor(product)?.toLowerCase() === sw.hex.toLowerCase()"
+                        [attr.aria-label]="(isAr() ? 'معاينة اللون ' : 'Aperçu coloris ') + sw.color"
+                        [title]="sw.color"
+                        (mouseenter)="previewCardColor(product, sw.hex)"
+                        (click)="selectCardColor(product, sw.hex, $event)"
+                      >
+                        <span class="card-swatch" [style.background]="sw.hex"></span>
+                      </button>
+                    }
+                  </div>
+                  @if (activeCardColorLabel(product)) {
+                    <span class="card-color-label">{{ activeCardColorLabel(product) }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-catalog">
+        <h3>{{ isAr() ? 'لا توجد منتجات مطابقة' : 'Aucun article trouvé' }}</h3>
+        <p>
+          {{
+            isAr()
+              ? 'قم بتعديل كلمات البحث أو إعادة تعيين الفئات لعرض كل المنتجات.'
+              : 'Modifiez votre recherche ou réinitialisez les filtres pour afficher toute la collection.'
+          }}
+        </p>
+        <button type="button" class="btn-secondary" (click)="clearFilters()">
+          {{ isAr() ? 'إعادة تعيين' : 'Réinitialiser les filtres' }}
+        </button>
+      </div>
+    }
+
+    @if (store.totalPages() > 1) {
+      <nav class="pagination-bar" [attr.aria-label]="isAr() ? 'صفحات المتجر' : 'Pages du catalogue'">
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="store.currentPage() === 1"
+          (click)="changePage(store.currentPage() - 1)"
+        >
+          {{ isAr() ? 'السابق' : 'Précédent' }}
+        </button>
+        <div class="page-dots">
+          @for (page of pageNumbers(); track page) {
+            <button
+              type="button"
+              class="page-num tabular"
+              [class.active]="page === store.currentPage()"
+              [attr.aria-current]="page === store.currentPage() ? 'page' : null"
+              (click)="changePage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+        </div>
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="store.currentPage() === store.totalPages()"
+          (click)="changePage(store.currentPage() + 1)"
+        >
+          {{ isAr() ? 'التالي' : 'Suivant' }}
+        </button>
+      </nav>
+    }
+  </section>
+
+  <!-- Section 3: Performance & COD Delivery -->
+  <section class="craft-delivery-section" id="delivery">
+    <div class="craft-media-col">
+      <img
+        src="/assets/images/editorial_craft_atelier_1795239482227.jpg"
+        [alt]="isAr() ? 'خامات موكيكو سبورت الرياضية' : 'Textiles techniques Mokiko Sport pliés avec soin'"
+        referrerpolicy="no-referrer"
+      />
+    </div>
+
+    <div class="craft-copy-col">
+      <p class="eyebrow-kicker">
+        {{ isAr() ? 'جودة الخامات والتوصيل' : 'Qualité & Livraison au Maroc' }}
+      </p>
+      <h2 class="craft-heading">
+        @if (isAr()) {
+          أداء عالٍ.<br>
+          <span>دفع عند الاستلام.</span>
+        } @else {
+          Confort durable.<br>
+          <span>Paiement à la réception.</span>
+        }
+      </h2>
+      <p class="craft-lead">
+        @if (isAr()) {
+          أقمشة قطنية وتقنية مختارة لتحافظ على مرونتها وشكلها بعد كل تمرين وغسيل، مع خدمة توصيل سريعة لجميع المدن المغربية.
+        } @else {
+          Des matières respirantes, extensibles et robustes conçues pour conserver leur tenue séance après séance, livrées rapidement chez vous sans paiement par carte.
+        }
+      </p>
+
+      <div class="delivery-steps-list">
+        <div class="step-row">
+          <span class="step-index tabular">01</span>
+          <div>
+            <strong>{{ isAr() ? 'اختر المقاس واللون' : 'Choisissez coupe & coloris' }}</strong>
+            <p>
+              {{
+                isAr()
+                  ? 'مخزون محدث مباشرة لكل لون ومقاس مع دليل قياسات واضح.'
+                  : 'Stock en temps réel par coloris et taille avec guide des mesures intégré.'
+              }}
+            </p>
+          </div>
+        </div>
+        <div class="step-row">
+          <span class="step-index tabular">02</span>
+          <div>
+            <strong>{{ isAr() ? 'تأكيد سريع عبر واتساب' : 'Confirmation via WhatsApp' }}</strong>
+            <p>
+              {{
+                isAr()
+                  ? 'يتواصل معك فريقنا لتأكيد العنوان وتوقيت التسليم قبل الإرسال.'
+                  : 'Notre équipe confirme votre créneau et votre ville avant expédition du colis.'
+              }}
+            </p>
+          </div>
+        </div>
+        <div class="step-row">
+          <span class="step-index tabular">03</span>
+          <div>
+            <strong>{{ isAr() ? 'الدفع نقداً عند الاستلام' : 'Règlement en espèces (COD)' }}</strong>
+            <p>
+              {{
+                isAr()
+                  ? 'تصل طلباتك خلال 24 إلى 48 ساعة وتدفع فقط عند استلامها.'
+                  : 'Livraison partout au Maroc sous 24h à 48h et règlement en main propre à l’arrivée.'
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Proper 4-Column Dark Informational Footer -->
+<footer class="mokiko-footer">
+  <div class="footer-grid">
+    <!-- Col 1: Brand Summary, Language Switcher & Socials -->
+    <div class="footer-col">
+      <div class="footer-logo">MOKIKO<span>SPORT</span></div>
+      <p class="footer-desc">
+        @if (isAr()) {
+          ملابس رياضية عالية الجودة للتدريب والاستعمال اليومي. شحن سريع لجميع المدن المغربية مع الدفع عند الاستلام.
+        } @else {
+          Vêtements de sport et tenues d’entraînement pensés pour la régularité et le confort. Expédition rapide partout au Maroc.
+        }
+      </p>
+      <p class="footer-location">
+        {{ isAr() ? 'الدار البيضاء · المغرب' : 'Casablanca · Maroc' }}
+      </p>
+
+      <div class="footer-lang-row">
+        <button
+          type="button"
+          class="footer-lang-btn"
+          [class.active]="store.lang() === 'fr'"
+          (click)="store.setLang('fr')"
+        >
+          Français
+        </button>
+        <button
+          type="button"
+          class="footer-lang-btn"
+          [class.active]="store.lang() === 'ar'"
+          (click)="store.setLang('ar')"
+        >
+          العربية
+        </button>
+      </div>
+    </div>
+
+    <!-- Col 2: Boutique Links -->
+    <div class="footer-col">
+      <h3 class="footer-col-title">{{ isAr() ? 'المتجر' : 'Boutique' }}</h3>
+      <ul class="footer-nav-list">
+        <li>
+          <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('All')">
+            {{ isAr() ? 'جميع المنتجات' : 'Toute la collection' }}
+          </a>
+        </li>
+        <li>
+          <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('Tops')">
+            {{ isAr() ? 'تيشيرتات التدريب' : 'T-shirts & Hauts' }}
+          </a>
+        </li>
+        <li>
+          <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('Layers')">
+            {{ isAr() ? 'هوديز وسترات' : 'Sweats & Vestes' }}
+          </a>
+        </li>
+        <li>
+          <a href="#collection" (click)="$event.preventDefault(); selectCategoryAndScroll('Bottoms')">
+            {{ isAr() ? 'سراويل وشورتات' : 'Joggers & Shorts' }}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Col 3: Customer Service -->
+    <div class="footer-col">
+      <h3 class="footer-col-title">{{ isAr() ? 'خدمة العملاء' : 'Service Client' }}</h3>
+      <ul class="footer-nav-list">
+        <li>
+          <button type="button" class="footer-link-btn" (click)="infoModal.set('sizes')">
+            {{ isAr() ? 'دليل المقاسات (S – XL)' : 'Guide des tailles (S – XL)' }}
+          </button>
+        </li>
+        <li>
+          <button type="button" class="footer-link-btn" (click)="infoModal.set('shipping')">
+            {{ isAr() ? 'التوصيل (24-48 ساعة)' : 'Livraison 24h–48h au Maroc' }}
+          </button>
+        </li>
+        <li>
+          <button type="button" class="footer-link-btn" (click)="infoModal.set('shipping')">
+            {{ isAr() ? 'الاستبدال والإرجاع (7 أيام)' : 'Échanges & retours 7 jours' }}
+          </button>
+        </li>
+        <li>
+          <a href="#delivery" (click)="$event.preventDefault(); scrollToSection('delivery')">
+            {{ isAr() ? 'الدفع عند الاستلام (COD)' : 'Paiement à la livraison (COD)' }}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Col 4: Contact & Hours -->
+    <div class="footer-col">
+      <h3 class="footer-col-title">{{ isAr() ? 'التواصل وساعات العمل' : 'Contact & Horaires' }}</h3>
+      <ul class="footer-info-list">
+        <li>
+          <span class="info-key">WhatsApp</span>
+          <a [href]="store.buildGeneralWhatsAppUrl()" target="_blank" rel="noopener" class="tabular" dir="ltr">
+            +212 695 08 38 80
+          </a>
+        </li>
+        <li>
+          <span class="info-key">Email</span>
+          <a href="mailto:contact@mokikosport.ma">contact@mokikosport.ma</a>
+        </li>
+        <li>
+          <span class="info-key">{{ isAr() ? 'التغطية' : 'Zones' }}</span>
+          <span>
+            {{ isAr() ? 'الدار البيضاء، الرباط، مراكش و58 مدينة' : 'Casablanca, Rabat, Marrakech & +58 villes' }}
+          </span>
+        </li>
+        <li>
+          <span class="info-key">{{ isAr() ? 'الأوقات' : 'Horaires' }}</span>
+          <span class="tabular">
+            {{ isAr() ? 'الإثنين – السبت · 09:00 – 20:00' : 'Lun – Sam · 09h00 – 20h00' }}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>
+      © 2026 MOKIKO SPORT.
+      {{ isAr() ? 'جميع الحقوق محفوظة.' : 'Tous droits réservés.' }}
+    </span>
+    <span class="tabular">
+      {{ isAr() ? 'الدفع نقداً عند الاستلام · الدرهم المغربي' : 'Paiement à la livraison · MAD' }}
+    </span>
+  </div>
+</footer>
+
+<!-- Minimalist Floating WhatsApp Action -->
+@if (store.ownerWhatsApp()) {
+  <a
+    class="whatsapp-float"
+    [href]="store.buildGeneralWhatsAppUrl()"
+    target="_blank"
+    rel="noopener"
+    [attr.aria-label]="isAr() ? 'تواصل معنا عبر واتساب' : 'Discuter sur WhatsApp'"
+  >
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+    <span>{{ isAr() ? 'واتساب' : 'WhatsApp' }}</span>
+  </a>
+}
+
+<!-- Info Modal for Footer Size Guide / Shipping Policies -->
+@if (infoModal(); as mode) {
+  <div class="drawer-backdrop" (click)="infoModal.set(null)">
+    <section
+      class="info-modal-card"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="mode === 'sizes' ? (isAr() ? 'دليل المقاسات' : 'Guide des tailles') : (isAr() ? 'التوصيل والاستبدال' : 'Livraison & Échanges')"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-eyebrow">MOKIKO SPORT</span>
+          <h2>
+            @if (mode === 'sizes') {
+              {{ isAr() ? 'دليل المقاسات (سم)' : 'Guide des tailles (cm)' }}
+            } @else {
+              {{ isAr() ? 'التوصيل والاستبدال' : 'Livraison & Échanges' }}
+            }
+          </h2>
+        </div>
+        <button
+          type="button"
+          class="icon-close"
+          [attr.aria-label]="isAr() ? 'إغلاق' : 'Fermer'"
+          (click)="infoModal.set(null)"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (mode === 'sizes') {
+        <div class="info-modal-body">
+          <p class="drawer-intro">
+            {{
+              isAr()
+                ? 'قياسات الجسم الموصى بها بالسنتيمتر. إذا كنت بين مقاسين، نوصي باختيار المقاس الأكبر لراحة أكبر.'
+                : 'Mesures corporelles indicatives en centimètres. Entre deux tailles, prenez la taille supérieure pour plus d’aisance.'
+            }}
+          </p>
+          <table class="size-table tabular">
+            <thead>
+              <tr>
+                <th>{{ isAr() ? 'المقاس' : 'Taille' }}</th>
+                <th>{{ isAr() ? 'الصدر' : 'Poitrine' }}</th>
+                <th>{{ isAr() ? 'الخصر' : 'Tour de taille' }}</th>
+                <th>{{ isAr() ? 'الطول' : 'Stature' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>S</td><td>92–97</td><td>76–81</td><td>170–176</td></tr>
+              <tr><td>M</td><td>98–103</td><td>82–87</td><td>176–182</td></tr>
+              <tr><td>L</td><td>104–110</td><td>88–94</td><td>182–188</td></tr>
+              <tr><td>XL</td><td>111–118</td><td>95–102</td><td>186–192</td></tr>
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="info-modal-body">
+          <div class="policy-block">
+            <strong>{{ isAr() ? 'مواعيد التوصيل' : 'Délais de livraison' }}</strong>
+            <p>
+              {{
+                isAr()
+                  ? 'الدار البيضاء والرباط خلال 24 ساعة · باقي مدن المغرب خلال 24 إلى 48 ساعة عمل.'
+                  : 'Casablanca & Rabat sous 24h · Autres villes du Maroc sous 24h à 48h ouvrées.'
+              }}
+            </p>
+          </div>
+          <div class="policy-block">
+            <strong>{{ isAr() ? 'التوصيل المجاني والدفع' : 'Frais & Paiement' }}</strong>
+            <p>
+              {{
+                isAr()
+                  ? 'توصيل مجاني للطلبات ابتداءً من ' + store.formatMAD(store.freeDeliveryThreshold) + '. الدفع نقداً عند الاستلام.'
+                  : 'Livraison offerte dès ' + store.formatMAD(store.freeDeliveryThreshold) + ' d’achat. Paiement exclusivement en espèces à la réception.'
+              }}
+            </p>
+          </div>
+          <div class="policy-block">
+            <strong>{{ isAr() ? 'الاستبدال خلال 7 أيام' : 'Échanges sous 7 jours' }}</strong>
+            <p>
+              {{
+                isAr()
+                  ? 'إمكانية استبدال المقاس أو اللون خلال 7 أيام إذا كان المنتج غير مستعمل وببطاقته الأصلية.'
+                  : 'Échange de taille ou de coloris possible sous 7 jours sur simple message WhatsApp (article non porté avec étiquette).'
+              }}
+            </p>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+}
+
+<store-product-detail-drawer />
+<store-cart-drawer />
+<store-checkout-drawer />

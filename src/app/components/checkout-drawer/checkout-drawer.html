@@ -1,0 +1,165 @@
+@if (store.priceVisible() && store.checkoutOpen()) {
+  <div class="drawer-backdrop" (click)="store.checkoutOpen.set(false)">
+    <section
+      class="side-drawer checkout-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="checkout-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-eyebrow">{{ isAr() ? 'الدفع عند الاستلام' : 'Paiement à la livraison' }}</span>
+          <h2 id="checkout-title">{{ isAr() ? 'بيانات التوصيل' : 'Livraison & Commande' }}</h2>
+        </div>
+        <button
+          type="button"
+          class="icon-close"
+          [attr.aria-label]="isAr() ? 'إغلاق صفحة الطلب' : 'Fermer la commande'"
+          (click)="store.checkoutOpen.set(false)"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (!orderComplete()) {
+        <p class="drawer-intro">
+          {{
+            isAr()
+              ? 'أدخل عنوان التوصيل. يتم الدفع نقداً فقط عند استلام طلبك.'
+              : 'Renseignez vos coordonnées de livraison. Le règlement se fait en espèces à la réception du colis.'
+          }}
+        </p>
+
+        <form class="checkout-form" [formGroup]="checkoutForm" (ngSubmit)="submitOrder()">
+          <label class="field">
+            <span>{{ isAr() ? 'الاسم الكامل' : 'Nom complet' }}</span>
+            <input formControlName="fullName" autocomplete="name" [placeholder]="isAr() ? 'كريم بنعلي' : 'Karim Benali'" />
+            @if (checkoutForm.controls.fullName.touched && checkoutForm.controls.fullName.invalid) {
+              <small class="field-error">{{ isAr() ? 'يرجى إدخال الاسم الكامل.' : 'Veuillez saisir votre nom complet.' }}</small>
+            }
+          </label>
+
+          <label class="field">
+            <span>{{ isAr() ? 'رقم الهاتف' : 'Téléphone' }}</span>
+            <input formControlName="phone" type="tel" autocomplete="tel" placeholder="+212 6XX XXX XXX" />
+            @if (checkoutForm.controls.phone.touched && checkoutForm.controls.phone.invalid) {
+              <small class="field-error">{{ isAr() ? 'يرجى إدخال رقم هاتف صحيح.' : 'Veuillez saisir un numéro valide.' }}</small>
+            }
+          </label>
+
+          <label class="field">
+            <span>{{ isAr() ? 'رقم الواتساب' : 'Numéro WhatsApp' }}</span>
+            <input formControlName="whatsapp" type="tel" autocomplete="tel" placeholder="+212 6XX XXX XXX" />
+            @if (checkoutForm.controls.whatsapp.touched && checkoutForm.controls.whatsapp.invalid) {
+              <small class="field-error">{{ isAr() ? 'رقم الواتساب ضروري لتأكيد التوصيل.' : 'Numéro WhatsApp requis pour confirmer la livraison.' }}</small>
+            }
+          </label>
+
+          <label class="field">
+            <span>{{ isAr() ? 'المدينة' : 'Ville' }}</span>
+            <input formControlName="city" autocomplete="address-level2" [placeholder]="isAr() ? 'الدار البيضاء، الرباط، مراكش...' : 'Casablanca, Rabat, Marrakech...'" />
+            @if (checkoutForm.controls.city.touched && checkoutForm.controls.city.invalid) {
+              <small class="field-error">{{ isAr() ? 'يرجى تحديد المدينة.' : 'Veuillez saisir votre ville.' }}</small>
+            }
+          </label>
+
+          <label class="field">
+            <span>{{ isAr() ? 'العنوان الكامل' : 'Adresse complète' }}</span>
+            <textarea formControlName="address" autocomplete="street-address" rows="3" [placeholder]="isAr() ? 'الحي، الشارع، رقم العمارة أو معلم قريب' : 'Quartier, rue, immeuble ou point de repère'"></textarea>
+            @if (checkoutForm.controls.address.touched && checkoutForm.controls.address.invalid) {
+              <small class="field-error">{{ isAr() ? 'يرجى إدخال عنوان التوصيل.' : 'Veuillez saisir votre adresse complète.' }}</small>
+            }
+          </label>
+
+          <label class="field">
+            <span>{{ isAr() ? 'ملاحظات التوصيل (اختياري)' : 'Instructions de livraison (optionnel)' }}</span>
+            <textarea formControlName="note" rows="2" [placeholder]="isAr() ? 'الوقت المناسب للاستلام...' : 'Créneau horaire souhaité...'"></textarea>
+          </label>
+
+          <div class="summary-box">
+            <div class="summary-row">
+              <span>{{ store.cartCount() }} {{ isAr() ? 'قطع' : 'article(s)' }}</span>
+              <strong class="tabular">{{ store.formatMAD(store.subtotal()) }}</strong>
+            </div>
+            <p class="summary-note">
+              {{ isAr() ? 'الدفع عند الاستلام · بدون بطاقة بنكية' : 'Paiement à la livraison · Aucun paiement en ligne' }}
+            </p>
+          </div>
+
+          @if (orderError()) {
+            <p class="form-feedback-error" role="alert">{{ orderError() }}</p>
+          }
+
+          <button
+            type="submit"
+            class="btn-primary btn-full"
+            [disabled]="submitting()"
+          >
+            {{
+              submitting()
+                ? (isAr() ? 'جاري تسجيل الطلب…' : 'Validation en cours…')
+                : (isAr() ? 'تأكيد الطلب (الدفع عند الاستلام)' : 'Confirmer la commande (COD)')
+            }}
+          </button>
+        </form>
+      } @else {
+        <div class="order-receipt" role="status">
+          <span class="receipt-status">{{ isAr() ? 'تم تسجيل طلبك' : 'Commande enregistrée' }}</span>
+          <h3 class="receipt-number tabular">{{ orderNumber() }}</h3>
+          <p class="receipt-copy">
+            {{
+              isAr()
+                ? 'تم تسجيل طلبك للدفع عند الاستلام بنجاح. يرجى تأكيده عبر واتساب لتجهيز الشحنة فوراً.'
+                : 'Votre commande COD est bien enregistrée. Confirmez-la sur WhatsApp pour lancer l’expédition.'
+            }}
+          </p>
+
+          <div class="receipt-items">
+            @for (item of capturedItems(); track item.product.id + '-' + (item.variant?.id || 0)) {
+              <div class="receipt-row">
+                <span>
+                  {{ item.product.name }}
+                  @if (item.variant) {
+                    ({{ item.variant.size }} · {{ item.variant.color }})
+                  }
+                  × {{ item.quantity }}
+                </span>
+                <span class="tabular">{{ store.formatMAD((item.product.price ?? 0) * item.quantity) }}</span>
+              </div>
+            }
+            <div class="receipt-row receipt-total">
+              <span>{{ isAr() ? 'المبلغ المستحق عند الاستلام' : 'Total à payer à la livraison' }}</span>
+              <strong class="tabular">{{ store.formatMAD(capturedSubtotal()) }}</strong>
+            </div>
+          </div>
+
+          <div class="receipt-actions">
+            @if (store.ownerWhatsApp()) {
+              <a
+                class="btn-primary btn-full"
+                [href]="whatsAppConfirmationUrl()"
+                target="_blank"
+                rel="noopener"
+              >
+                {{ isAr() ? 'تأكيد عبر واتساب' : 'Confirmer sur WhatsApp' }}
+              </a>
+            }
+            <button type="button" class="btn-secondary btn-full" (click)="copyOrderDetails()">
+              {{
+                copiedSummary()
+                  ? (isAr() ? 'تم نسخ تفاصيل الطلب' : 'Récapitulatif copié')
+                  : (isAr() ? 'نسخ تفاصيل الطلب' : 'Copier le récapitulatif')
+              }}
+            </button>
+            <button type="button" class="btn-ghost btn-full" (click)="finishAndClose()">
+              {{ isAr() ? 'العودة إلى المتجر' : 'Retour à la boutique' }}
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+}

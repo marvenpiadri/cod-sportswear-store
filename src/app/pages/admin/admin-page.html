@@ -1,0 +1,1364 @@
+@if (!store.adminUnlocked()) {
+  <!-- SECRET PIN LOGIN OR FIRST-RUN SETUP GATE -->
+  <main class="admin-gate-shell">
+    <div class="admin-gate-card">
+      <div class="gate-top-row">
+        <div class="gate-brand">MOKIKO<span>SPORT</span></div>
+        <div class="crm-lang-toggle" role="group" [attr.aria-label]="isAr() ? 'تغيير اللغة' : 'Changer de langue'">
+          <button
+            type="button"
+            class="crm-lang-btn"
+            [class.active]="store.lang() === 'fr'"
+            (click)="store.setLang('fr')"
+          >
+            FR
+          </button>
+          <span aria-hidden="true">/</span>
+          <button
+            type="button"
+            class="crm-lang-btn"
+            [class.active]="store.lang() === 'ar'"
+            (click)="store.setLang('ar')"
+          >
+            العربية
+          </button>
+        </div>
+      </div>
+
+      <p class="eyebrow-kicker">
+        {{ isAr() ? 'الإدارة الخاصة للمتجر' : 'Administration privée' }}
+      </p>
+
+      @if (store.authMode() === 'unclaimed' && !showApiConfig()) {
+        <h1 class="gate-title">
+          {{ isAr() ? 'إعداد رمز الدخول PIN' : 'Configurer le code PIN' }}
+        </h1>
+        <p class="gate-copy">
+          {{
+            isAr()
+              ? 'قم بتعيين رمز سري مكون من 4 إلى 8 أرقام لحماية لوحة الإدارة. يتم تشفيره وحفظه في قاعدة البيانات.'
+              : 'Définissez votre code PIN secret (4 à 8 chiffres) pour verrouiller cet espace CRM. Il est chiffré (scrypt) dans SQLite.'
+          }}
+        </p>
+
+        <form class="gate-form" [formGroup]="setupForm" (ngSubmit)="submitInitialSetup()">
+          <label class="field">
+            <div class="field-label-row">
+              <span>{{ isAr() ? 'اختر رمز PIN (4-8 أرقام)' : 'Choisir un code PIN (4–8 chiffres)' }}</span>
+              <button type="button" class="text-action" (click)="showPin.set(!showPin())">
+                {{ showPin() ? (isAr() ? 'إخفاء' : 'Masquer') : (isAr() ? 'إظهار' : 'Afficher') }}
+              </button>
+            </div>
+            <input
+              formControlName="pin"
+              [type]="showPin() ? 'text' : 'password'"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="•••••"
+              class="pin-input tabular"
+            />
+            @if (setupForm.controls.pin.touched && setupForm.controls.pin.invalid) {
+              <small class="field-error">
+                {{ isAr() ? 'أدخل من 4 إلى 8 أرقام.' : 'Saisissez 4 à 8 chiffres.' }}
+              </small>
+            }
+          </label>
+
+          <label class="field">
+            <span>{{ isAr() ? 'تأكيد رمز PIN' : 'Confirmer le code PIN' }}</span>
+            <input
+              formControlName="confirmPin"
+              [type]="showPin() ? 'text' : 'password'"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="•••••"
+              class="pin-input tabular"
+            />
+          </label>
+
+          <button type="button" class="text-action gate-api-toggle" (click)="showApiConfig.set(true)">
+            {{ isAr() ? 'الربط مع Cloudflare Worker API بدلاً من ذلك' : 'Connecter une API Cloudflare Worker distante' }}
+          </button>
+
+          @if (authError()) {
+            <p class="form-feedback-error" role="alert">{{ authError() }}</p>
+          }
+
+          <button type="submit" class="btn-primary btn-full" [disabled]="authBusy()">
+            {{
+              authBusy()
+                ? (isAr() ? 'جاري الحفظ…' : 'Enregistrement…')
+                : (isAr() ? 'حفظ الرمز وفتح الإدارة' : 'Enregistrer le PIN et ouvrir')
+            }}
+          </button>
+        </form>
+      } @else {
+        <h1 class="gate-title">
+          {{ isAr() ? 'إدخال رمز PIN' : 'Saisir le code PIN' }}
+        </h1>
+        <p class="gate-copy">
+          {{
+            isAr()
+              ? 'هذه الصفحة مخصصة لإدارة المتجر. أدخل رمز PIN للدخول إلى لوحة المنتجات والطلبات.'
+              : 'Espace réservé à l’équipe Mokiko Sport. Entrez votre code PIN pour gérer les produits et commandes.'
+          }}
+        </p>
+
+        <form class="gate-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+          <label class="field">
+            <div class="field-label-row">
+              <span>{{ isAr() ? 'رمز الدخول PIN' : 'Code PIN d’accès' }}</span>
+              <button type="button" class="text-action" (click)="showPin.set(!showPin())">
+                {{ showPin() ? (isAr() ? 'إخفاء' : 'Masquer') : (isAr() ? 'إظهار' : 'Afficher') }}
+              </button>
+            </div>
+            <input
+              formControlName="pin"
+              [type]="showPin() ? 'text' : 'password'"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="•••••"
+              class="pin-input tabular"
+            />
+            @if (loginForm.controls.pin.touched && loginForm.controls.pin.invalid) {
+              <small class="field-error">
+                {{ isAr() ? 'يرجى إدخال رمز PIN.' : 'Saisissez votre code PIN.' }}
+              </small>
+            }
+          </label>
+
+          <button type="button" class="text-action gate-api-toggle" (click)="showApiConfig.set(!showApiConfig())">
+            {{
+              showApiConfig()
+                ? (isAr() ? 'استخدام قاعدة SQLite المحلية' : 'Utiliser la base SQLite intégrée')
+                : (isAr() ? 'الربط مع Cloudflare Worker (اختياري)' : 'Connecter une API Worker distante (optionnel)')
+            }}
+          </button>
+
+          @if (showApiConfig()) {
+            <label class="field">
+              <span>{{ isAr() ? 'رابط Cloudflare Worker API' : 'URL API Cloudflare Worker' }}</span>
+              <input
+                formControlName="apiUrl"
+                type="url"
+                placeholder="https://your-worker.workers.dev"
+              />
+            </label>
+          }
+
+          @if (authError()) {
+            <p class="form-feedback-error" role="alert">{{ authError() }}</p>
+          }
+
+          <button type="submit" class="btn-primary btn-full" [disabled]="authBusy()">
+            {{
+              authBusy()
+                ? (isAr() ? 'جاري التحقق…' : 'Vérification…')
+                : (isAr() ? 'فتح لوحة الإدارة' : 'Déverrouiller le CRM')
+            }}
+          </button>
+        </form>
+      }
+
+      <div class="gate-footer">
+        <a routerLink="/" class="text-link-muted">
+          {{ isAr() ? '← العودة إلى المتجر' : '← Retour à la boutique' }}
+        </a>
+      </div>
+    </div>
+  </main>
+} @else {
+  <!-- AUTHENTICATED LITE CRM WORKSPACE -->
+  <div class="crm-shell">
+    <header class="crm-topbar">
+      <div class="crm-breadcrumb">
+        <a routerLink="/" class="brand-mark">MOKIKO<span>SPORT</span></a>
+        <span aria-hidden="true">/</span>
+        <span class="crm-subtitle">{{ isAr() ? 'لوحة الإدارة' : 'Gestion Boutique' }}</span>
+      </div>
+
+      <div class="crm-topbar-actions">
+        <div class="crm-lang-toggle" role="group" [attr.aria-label]="isAr() ? 'تغيير اللغة' : 'Changer de langue'">
+          <button
+            type="button"
+            class="crm-lang-btn"
+            [class.active]="store.lang() === 'fr'"
+            (click)="store.setLang('fr')"
+          >
+            FR
+          </button>
+          <span aria-hidden="true">/</span>
+          <button
+            type="button"
+            class="crm-lang-btn"
+            [class.active]="store.lang() === 'ar'"
+            (click)="store.setLang('ar')"
+          >
+            العربية
+          </button>
+        </div>
+
+        <button type="button" class="btn-secondary btn-sm" [disabled]="crmBusy()" (click)="refreshDatabaseData()">
+          {{ isAr() ? 'تحديث' : 'Synchroniser' }}
+        </button>
+        <a routerLink="/" class="btn-secondary btn-sm">
+          {{ isAr() ? 'عرض المتجر' : 'Voir boutique' }}
+        </a>
+        <button type="button" class="btn-primary btn-sm" (click)="lockWorkspace()">
+          {{ isAr() ? 'قفل' : 'Verrouiller' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="crm-workspace">
+      <!-- Sidebar Navigation (240px desktop / top bar on mobile) -->
+      <aside class="crm-sidebar">
+        <nav class="crm-sidebar-nav" [attr.aria-label]="isAr() ? 'أقسام الإدارة' : 'Sections CRM'">
+          <button type="button" class="crm-nav-item" [class.active]="activeTab() === 'catalog'" (click)="activeTab.set('catalog')">
+            <span>{{ isAr() ? 'الكتالوج والمنتجات' : 'Catalogue' }}</span>
+            <span class="crm-nav-count tabular">{{ store.allProducts().length }}</span>
+          </button>
+          <button type="button" class="crm-nav-item" [class.active]="activeTab() === 'add'" (click)="activeTab.set('add')">
+            <span>{{ isAr() ? '+ إضافة منتج جديد' : '+ Nouveau produit' }}</span>
+          </button>
+          <button type="button" class="crm-nav-item" [class.active]="activeTab() === 'orders'" (click)="activeTab.set('orders')">
+            <span>{{ isAr() ? 'الطلبات (COD)' : 'Commandes COD' }}</span>
+            <span class="crm-nav-count tabular">{{ store.orders().length }}</span>
+          </button>
+          <button type="button" class="crm-nav-item" [class.active]="activeTab() === 'inventory'" (click)="activeTab.set('inventory')">
+            <span>{{ isAr() ? 'المخزون والتنبيهات' : 'Stock & Alertes' }}</span>
+            @if (store.unreadNotificationCount() > 0) {
+              <span class="crm-nav-alert tabular">{{ store.unreadNotificationCount() }}</span>
+            }
+          </button>
+          <button type="button" class="crm-nav-item" [class.active]="activeTab() === 'settings'" (click)="activeTab.set('settings')">
+            <span>{{ isAr() ? 'الإعدادات والأمان' : 'Paramètres' }}</span>
+          </button>
+        </nav>
+
+        <div class="crm-sidebar-meta">
+          <div class="meta-label">{{ isAr() ? 'التخزين المتصل' : 'Stockage actif' }}</div>
+          <div class="meta-val">
+            @if (store.apiUrl()) {
+              Cloudflare Worker (D1 + R2)
+            } @else if (store.r2Status().configured) {
+              SQLite + R2 ({{ store.r2Status().bucket }})
+            } @else {
+              SQLite + Média local
+            }
+          </div>
+        </div>
+      </aside>
+
+      <div class="crm-main">
+        <!-- KPI Strip -->
+        <section class="crm-kpi-grid" [attr.aria-label]="isAr() ? 'ملخص المتجر' : 'Résumé boutique'">
+          <div class="crm-kpi">
+            <span class="kpi-label">{{ isAr() ? 'المنتجات النشطة' : 'Produits actifs' }}</span>
+            <strong class="kpi-value tabular">{{ activeProductCount() }}</strong>
+            <span class="kpi-sub tabular">
+              {{ store.allProducts().length }} {{ isAr() ? 'إجمالي بالكتالوج' : 'au catalogue' }}
+            </span>
+          </div>
+          <div class="crm-kpi">
+            <span class="kpi-label">{{ isAr() ? 'المخزون المتاح' : 'Stock disponible' }}</span>
+            <strong class="kpi-value tabular">{{ totalStockUnits() }}</strong>
+            <span class="kpi-sub">{{ isAr() ? 'وحدة عبر كل المقاسات' : 'unités toutes variantes' }}</span>
+          </div>
+          <div class="crm-kpi">
+            <span class="kpi-label">{{ isAr() ? 'طلبات COD' : 'Commandes COD' }}</span>
+            <strong class="kpi-value tabular">{{ store.orders().length }}</strong>
+            <span class="kpi-sub">{{ store.apiUrl() ? 'Worker D1' : 'SQLite' }}</span>
+          </div>
+          <div class="crm-kpi">
+            <span class="kpi-label">{{ isAr() ? 'إشعارات جديدة' : 'Alertes non lues' }}</span>
+            <strong class="kpi-value tabular">{{ store.unreadNotificationCount() }}</strong>
+            <span class="kpi-sub">{{ isAr() ? 'تنبيهات الطلبات' : 'notifications' }}</span>
+          </div>
+        </section>
+
+        @if (crmFeedback()) {
+          <div class="crm-banner-ok" role="status">{{ crmFeedback() }}</div>
+        }
+        @if (crmError()) {
+          <div class="crm-banner-err" role="alert">{{ crmError() }}</div>
+        }
+
+        <!-- TAB 1: CATALOG -->
+        @if (activeTab() === 'catalog') {
+          <section class="crm-panel">
+            <div class="crm-panel-head">
+              <div>
+                <h2>{{ isAr() ? 'إدارة الكتالوج' : 'Gestion du catalogue' }}</h2>
+                <p>
+                  {{
+                    isAr()
+                      ? 'تعديل الأسعار، المقاسات، المخزون، ورفع صور الألوان (ضغط WebP محلي قبل الحفظ في R2 / SQLite).'
+                      : 'Gérez les tarifs, stocks par taille/coloris et photos compressées localement en WebP avant envoi vers R2 / SQLite.'
+                  }}
+                </p>
+              </div>
+              <button type="button" class="btn-primary btn-sm" (click)="activeTab.set('add')">
+                {{ isAr() ? '+ منتج جديد' : '+ Nouveau produit' }}
+              </button>
+            </div>
+
+            <div class="crm-filter-bar">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-3.5-3.5" />
+                </svg>
+                <input
+                  type="search"
+                  [formControl]="catalogSearchControl"
+                  [placeholder]="isAr() ? 'ابحث باسم المنتج أو الفئة...' : 'Rechercher par nom, catégorie ou slug...'"
+                  [attr.aria-label]="isAr() ? 'بحث في المنتجات' : 'Rechercher dans le catalogue'"
+                />
+              </div>
+
+              <div class="segmented-mini">
+                <button type="button" [class.active]="catalogStatusFilter() === 'all'" (click)="catalogStatusFilter.set('all')">
+                  {{ isAr() ? 'الكل' : 'Tous' }}
+                </button>
+                <button type="button" [class.active]="catalogStatusFilter() === 'active'" (click)="catalogStatusFilter.set('active')">
+                  {{ isAr() ? 'نشط' : 'Actifs' }}
+                </button>
+                <button type="button" [class.active]="catalogStatusFilter() === 'draft'" (click)="catalogStatusFilter.set('draft')">
+                  {{ isAr() ? 'مسودة' : 'Brouillons' }}
+                </button>
+                <button type="button" [class.active]="catalogStatusFilter() === 'archived'" (click)="catalogStatusFilter.set('archived')">
+                  {{ isAr() ? 'مؤرشف' : 'Archivés' }}
+                </button>
+              </div>
+            </div>
+
+            @if (filteredCatalog().length) {
+              <div class="crm-list">
+                @for (product of filteredCatalog(); track product.id) {
+                  <article class="crm-item-card">
+                    <div class="crm-product-row">
+                      <div class="crm-thumb">
+                        <img [src]="product.image" [alt]="product.name" referrerpolicy="no-referrer" />
+                      </div>
+
+                      <div class="crm-product-info">
+                        <div class="crm-meta-line">
+                          <span>{{ categoryLabel(product.category) }}</span>
+                          <span aria-hidden="true">·</span>
+                          <span>{{ productStatusLabel(product.status) }}</span>
+                          <span aria-hidden="true">·</span>
+                          <span class="tabular">#{{ product.id }} / {{ product.slug }}</span>
+                        </div>
+                        <h3>{{ product.name }}</h3>
+                        <p class="crm-product-stats tabular">
+                          {{ product.price !== null ? store.formatMAD(product.price) : (isAr() ? 'السعر مخفي' : 'Prix masqué') }}
+                          · {{ product.images.length }} {{ isAr() ? 'صور' : 'photos' }}
+                          · {{ product.variants.length }} {{ isAr() ? 'خيارات' : 'variantes' }}
+                          · {{ totalProductStock(product) }} {{ isAr() ? 'قطعة' : 'unités' }}
+                        </p>
+                      </div>
+
+                      <div class="crm-row-actions">
+                        <button type="button" class="btn-secondary btn-sm" (click)="startEditingProduct(product)">
+                          {{ editingProductId() === product.id ? (isAr() ? 'إغلاق' : 'Fermer') : (isAr() ? 'تعديل' : 'Modifier') }}
+                        </button>
+                        <button type="button" class="btn-secondary btn-sm" (click)="toggleVariantForm(product.id)">
+                          {{ addingVariantForProductId() === product.id ? (isAr() ? 'إغلاق' : 'Fermer') : (isAr() ? '+ مقاس/لون' : '+ Variante') }}
+                        </button>
+                        @if (confirmDeleteProductId() === product.id) {
+                          <button
+                            type="button"
+                            class="btn-danger btn-sm"
+                            [disabled]="crmBusy()"
+                            (click)="confirmDeleteProduct(product)"
+                          >
+                            {{ isAr() ? 'تأكيد الحذف' : 'Confirmer' }}
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-ghost btn-sm"
+                            (click)="confirmDeleteProductId.set(null)"
+                          >
+                            {{ isAr() ? 'إلغاء' : 'Annuler' }}
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            class="btn-ghost btn-sm text-danger"
+                            (click)="confirmDeleteProductId.set(product.id)"
+                          >
+                            {{ isAr() ? 'حذف' : 'Supprimer' }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Colour-Tagged Product Photos Gallery -->
+                    @if (product.images.length) {
+                      <div class="crm-gallery-section">
+                        <span class="crm-section-label">
+                          {{ isAr() ? 'صور المنتج حسب اللون' : 'Photos par coloris' }}
+                        </span>
+                        <div class="crm-gallery-grid">
+                          @for (img of product.images; track img.id) {
+                            <div class="crm-gallery-card">
+                              <div class="crm-gallery-thumb">
+                                <img [src]="img.url" [alt]="img.alt_text || product.name" referrerpolicy="no-referrer" />
+                              </div>
+                              <div class="crm-gallery-meta">
+                                <div class="crm-gallery-color-row">
+                                  @if (img.color_hex) {
+                                    <span class="thumb-dot" [style.background]="img.color_hex"></span>
+                                  }
+                                  <strong>{{ img.color || (isAr() ? 'لون غير محدد' : 'Sans coloris') }}</strong>
+                                </div>
+                                @if (img.color_hex) {
+                                  <span class="crm-gallery-hex tabular">{{ img.color_hex }}</span>
+                                }
+                                <div class="crm-gallery-actions">
+                                  <button type="button" class="text-action" (click)="startEditImageColor(img)">
+                                    {{ editingImageId() === img.id ? (isAr() ? 'إغلاق' : 'Fermer') : (isAr() ? 'تغيير اللون' : 'Changer coloris') }}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="text-action text-danger"
+                                    [disabled]="crmBusy()"
+                                    (click)="removeProductImage(img.id)"
+                                  >
+                                    {{ isAr() ? 'حذف' : 'Supprimer' }}
+                                  </button>
+                                </div>
+                              </div>
+
+                              @if (editingImageId() === img.id) {
+                                <form class="crm-image-color-edit" [formGroup]="editImageColorForm" (ngSubmit)="saveImageColor(img.id)">
+                                  <div class="color-preview-bar">
+                                    <span class="color-preview-chip" [style.background]="editImgHex()"></span>
+                                    <div class="color-preview-text">
+                                      <strong>{{ editImgName() || (isAr() ? 'معاينة اللون' : 'Aperçu coloris') }}</strong>
+                                      <span class="tabular">{{ editImgHex() }}</span>
+                                    </div>
+                                  </div>
+
+                                  <div class="color-preset-grid">
+                                    @for (preset of colorPresets; track preset.hex) {
+                                      <button
+                                        type="button"
+                                        class="color-preset-btn"
+                                        [class.active]="editImgHex() === preset.hex.toUpperCase()"
+                                        [style.background]="preset.hex"
+                                        [title]="presetLabel(preset)"
+                                        [attr.aria-label]="presetLabel(preset)"
+                                        (click)="pickEditImagePreset(preset)"
+                                      ></button>
+                                    }
+                                    <label
+                                      class="color-wheel-swatch"
+                                      [title]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                                      [attr.aria-label]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                                    >
+                                      <span class="wheel-plus" aria-hidden="true">+</span>
+                                      <input
+                                        type="color"
+                                        class="sr-color-input"
+                                        [value]="editImgHex()"
+                                        (input)="onEditImageWheel($event)"
+                                      />
+                                    </label>
+                                  </div>
+
+                                  <div class="crm-image-color-inputs">
+                                    <input
+                                      formControlName="color"
+                                      [placeholder]="isAr() ? 'اسم اللون' : 'Nom du coloris'"
+                                      [attr.aria-label]="isAr() ? 'اسم اللون' : 'Nom du coloris'"
+                                    />
+                                    <button type="submit" class="btn-primary btn-sm" [disabled]="crmBusy()">
+                                      {{ isAr() ? 'حفظ' : 'Valider' }}
+                                    </button>
+                                  </div>
+                                </form>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Styled Upload Button & Color Picker Bar on Existing Product -->
+                    <div class="crm-image-bar">
+                      <div class="crm-upload-bar-head">
+                        <label class="upload-btn-styled">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                          </svg>
+                          <span>
+                            {{
+                              compressingImages()
+                                ? (isAr() ? 'جاري الضغط…' : 'Compression WebP…')
+                                : (isAr() ? '+ إضافة صورة بلون جديد (ضغط WebP محلي)' : '+ Ajouter une photo coloris (WebP local)')
+                            }}
+                          </span>
+                          <input type="file" accept="image/*" class="sr-only" (change)="onRowImagePicked(product, $event)" />
+                        </label>
+                      </div>
+
+                      @if (rowProgress(); as prog) {
+                        @if (prog.productId === product.id) {
+                          <div class="upload-progress-box" aria-live="polite">
+                            <div class="upload-progress-head">
+                              <span class="upload-progress-label">{{ prog.label }}</span>
+                              <strong class="upload-progress-pct tabular">{{ prog.percent }}%</strong>
+                            </div>
+                            <div
+                              class="upload-progress-track"
+                              role="progressbar"
+                              aria-valuemin="0"
+                              aria-valuemax="100"
+                              [attr.aria-valuenow]="prog.percent"
+                            >
+                              <div
+                                class="upload-progress-fill"
+                                [class.upload]="prog.phase === 'upload'"
+                                [style.width.%]="prog.percent"
+                              ></div>
+                            </div>
+                          </div>
+                        }
+                      }
+
+                      @if (uploadingImageProductId() === product.id && pendingRowVariantSummary()) {
+                        <form class="crm-row-upload-panel" [formGroup]="rowUploadForm" (ngSubmit)="uploadRowImage(product)">
+                          <div class="row-upload-preview-wrap">
+                            @if (pendingRowPreviewUrl()) {
+                              <img class="row-upload-thumb" [src]="pendingRowPreviewUrl()" [alt]="product.name" />
+                            }
+                            <div class="row-upload-stats">
+                              <strong class="compression-badge">{{ pendingRowCompressionNote() }}</strong>
+                              <span class="pipeline-info tabular">{{ pendingRowVariantSummary() }}</span>
+                            </div>
+                          </div>
+
+                          <div class="color-picker-block">
+                            <div class="color-preview-bar">
+                              <span class="color-preview-chip" [style.background]="rowUploadHex()"></span>
+                              <div class="color-preview-text">
+                                <strong>{{ rowUploadName() || (isAr() ? 'معاينة اللون المختار' : 'Aperçu du coloris sélectionné') }}</strong>
+                                <span class="tabular">{{ rowUploadHex() }}</span>
+                              </div>
+                            </div>
+
+                            <div class="color-preset-grid">
+                              @for (preset of colorPresets; track preset.hex) {
+                                <button
+                                  type="button"
+                                  class="color-preset-btn"
+                                  [class.active]="rowUploadHex() === preset.hex.toUpperCase()"
+                                  [style.background]="preset.hex"
+                                  [title]="presetLabel(preset)"
+                                  [attr.aria-label]="presetLabel(preset)"
+                                  (click)="pickRowUploadPreset(preset)"
+                                ></button>
+                              }
+                              <label
+                                class="color-wheel-swatch"
+                                [title]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                                [attr.aria-label]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                              >
+                                <span class="wheel-plus" aria-hidden="true">+</span>
+                                <input
+                                  type="color"
+                                  class="sr-color-input"
+                                  [value]="rowUploadHex()"
+                                  (input)="onRowUploadWheel($event)"
+                                />
+                              </label>
+                            </div>
+
+                            <div class="crm-row-upload-inputs">
+                              <input
+                                formControlName="color"
+                                [placeholder]="isAr() ? 'اسم اللون (مثال: بيج رملي)' : 'Nom du coloris (ex : Beige Sable)'"
+                                [attr.aria-label]="isAr() ? 'اسم لون الصورة' : 'Nom coloris photo'"
+                              />
+                              <button type="submit" class="btn-primary btn-sm" [disabled]="crmBusy()">
+                                {{ isAr() ? 'رفع وحفظ الصورة' : 'Téléverser vers R2 / SQLite' }}
+                              </button>
+                              <button type="button" class="btn-ghost btn-sm" (click)="cancelRowImageUpload()">
+                                {{ isAr() ? 'إلغاء' : 'Annuler' }}
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      }
+                    </div>
+
+                    <!-- Variants & Stock Controls -->
+                    @if (product.variants.length) {
+                      <div class="crm-variants-bar">
+                        @for (v of product.variants; track v.id) {
+                          <div class="crm-variant-chip">
+                            @if (v.color_hex) {
+                              <span class="thumb-dot" [style.background]="v.color_hex"></span>
+                            }
+                            <span class="variant-chip-label">{{ v.size }} · {{ v.color }}</span>
+                            <span class="variant-chip-stock tabular">{{ v.stock }}</span>
+                            <div class="mini-steppers">
+                              <button
+                                type="button"
+                                [attr.aria-label]="(isAr() ? 'إنقاص المخزون ' : 'Diminuer stock ') + v.size + ' ' + v.color"
+                                [disabled]="v.stock < 1 || crmBusy()"
+                                (click)="adjustStock(v.id, -1)"
+                              >
+                                −
+                              </button>
+                              <button
+                                type="button"
+                                [attr.aria-label]="(isAr() ? 'زيادة المخزون ' : 'Augmenter stock ') + v.size + ' ' + v.color"
+                                [disabled]="crmBusy()"
+                                (click)="adjustStock(v.id, 1)"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Inline Edit Form -->
+                    @if (editingProductId() === product.id) {
+                      <form class="crm-subform" [formGroup]="editProductForm" (ngSubmit)="saveEditedProduct(product.id)">
+                        <div class="form-grid-2">
+                          <label class="field">
+                            <span>{{ isAr() ? 'اسم المنتج' : 'Nom du produit' }}</span>
+                            <input formControlName="name" />
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'السعر (درهم)' : 'Prix (MAD)' }}</span>
+                            <input formControlName="price" type="number" min="0" step="1" />
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'الفئة' : 'Catégorie' }}</span>
+                            <select formControlName="category">
+                              <option value="Tops">{{ categoryLabel('Tops') }}</option>
+                              <option value="Layers">{{ categoryLabel('Layers') }}</option>
+                              <option value="Bottoms">{{ categoryLabel('Bottoms') }}</option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'الحالة' : 'Visibilité' }}</span>
+                            <select formControlName="status">
+                              <option value="active">{{ productStatusLabel('active') }}</option>
+                              <option value="draft">{{ productStatusLabel('draft') }}</option>
+                              <option value="archived">{{ productStatusLabel('archived') }}</option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'الوسم' : 'Badge / Série' }}</span>
+                            <input formControlName="tag" placeholder="Essentiel, Nouveauté" />
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'ملاحظة الخامة' : 'Matière & grammage' }}</span>
+                            <input formControlName="fabricNote" />
+                          </label>
+                        </div>
+                        <label class="field">
+                          <span>{{ isAr() ? 'ملاحظة المقاس والقصة' : 'Note coupe & mannequin' }}</span>
+                          <input formControlName="fitNote" />
+                        </label>
+                        <label class="field">
+                          <span>{{ isAr() ? 'الوصف' : 'Description' }}</span>
+                          <textarea formControlName="description" rows="2"></textarea>
+                        </label>
+                        <div class="subform-actions">
+                          <button type="submit" class="btn-primary btn-sm" [disabled]="crmBusy()">
+                            {{ isAr() ? 'حفظ التعديلات' : 'Enregistrer' }}
+                          </button>
+                          <button type="button" class="btn-ghost btn-sm" (click)="editingProductId.set(null)">
+                            {{ isAr() ? 'إلغاء' : 'Annuler' }}
+                          </button>
+                        </div>
+                      </form>
+                    }
+
+                    <!-- Inline Add Variant Form with Color Picker & Preview -->
+                    @if (addingVariantForProductId() === product.id) {
+                      <form class="crm-subform" [formGroup]="addVariantForm" (ngSubmit)="submitNewVariant(product.id)">
+                        <div class="color-picker-block">
+                          <div class="color-preview-bar">
+                            <span class="color-preview-chip" [style.background]="addVariantHex()"></span>
+                            <div class="color-preview-text">
+                              <strong>{{ addVariantName() || (isAr() ? 'معاينة اللون' : 'Aperçu coloris') }}</strong>
+                              <span class="tabular">{{ addVariantHex() }}</span>
+                            </div>
+                          </div>
+                          <div class="color-preset-grid">
+                            @for (preset of colorPresets; track preset.hex) {
+                              <button
+                                type="button"
+                                class="color-preset-btn"
+                                [class.active]="addVariantHex() === preset.hex.toUpperCase()"
+                                [style.background]="preset.hex"
+                                [title]="presetLabel(preset)"
+                                [attr.aria-label]="presetLabel(preset)"
+                                (click)="pickAddVariantPreset(preset)"
+                              ></button>
+                            }
+                            <label
+                              class="color-wheel-swatch"
+                              [title]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                              [attr.aria-label]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                            >
+                              <span class="wheel-plus" aria-hidden="true">+</span>
+                              <input
+                                type="color"
+                                class="sr-color-input"
+                                [value]="addVariantHex()"
+                                (input)="onAddVariantWheel($event)"
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div class="form-grid-3">
+                          <label class="field">
+                            <span>{{ isAr() ? 'المقاس' : 'Taille' }}</span>
+                            <input formControlName="size" placeholder="M" />
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'اسم اللون' : 'Nom coloris' }}</span>
+                            <input formControlName="color" placeholder="Anthracite" />
+                          </label>
+                          <label class="field">
+                            <span>{{ isAr() ? 'المخزون الأولي' : 'Stock initial' }}</span>
+                            <input formControlName="stock" type="number" min="0" />
+                          </label>
+                        </div>
+                        <div class="subform-actions">
+                          <button type="submit" class="btn-primary btn-sm" [disabled]="crmBusy()">
+                            {{ isAr() ? 'إضافة المقاس' : 'Ajouter la variante' }}
+                          </button>
+                          <button type="button" class="btn-ghost btn-sm" (click)="addingVariantForProductId.set(null)">
+                            {{ isAr() ? 'إلغاء' : 'Annuler' }}
+                          </button>
+                        </div>
+                      </form>
+                    }
+                  </article>
+                }
+              </div>
+            } @else {
+              <div class="crm-empty-state">
+                <p>{{ isAr() ? 'لا توجد منتجات مطابقة للبحث.' : 'Aucun produit ne correspond à votre filtre.' }}</p>
+              </div>
+            }
+          </section>
+        }
+
+        <!-- TAB 2: ADD PRODUCT -->
+        @if (activeTab() === 'add') {
+          <section class="crm-panel">
+            <div class="crm-panel-head">
+              <div>
+                <h2>{{ isAr() ? 'إضافة منتج جديد' : 'Lancer un nouveau produit' }}</h2>
+                <p>
+                  {{
+                    isAr()
+                      ? 'أضف منتجاً بمخزون أولي وصور متعددة الألوان مضغوطة محلياً بصيغة WebP قبل رفعها إلى R2 / SQLite.'
+                      : 'Créez un article avec son stock initial et plusieurs photos par coloris, compressées localement en WebP avant envoi vers R2 / SQLite.'
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <form class="crm-create-form" [formGroup]="createProductForm" (ngSubmit)="submitCreateProduct()">
+              <div class="form-grid-2">
+                <label class="field">
+                  <span>{{ isAr() ? 'اسم المنتج *' : 'Nom du produit *' }}</span>
+                  <input formControlName="name" [placeholder]="isAr() ? 'تيشيرت تدريب برو' : 'T-Shirt Training Pro'" />
+                  @if (createProductForm.controls.name.touched && createProductForm.controls.name.invalid) {
+                    <small class="field-error">{{ isAr() ? 'أدخل اسم المنتج.' : 'Veuillez saisir le nom du produit.' }}</small>
+                  }
+                </label>
+
+                <label class="field">
+                  <span>{{ isAr() ? 'الرابط Slug (اختياري)' : 'Slug URL (optionnel)' }}</span>
+                  <input formControlName="slug" [placeholder]="isAr() ? 'يتم إنشاؤه تلقائياً' : 'Généré automatiquement'" />
+                </label>
+
+                <label class="field">
+                  <span>{{ isAr() ? 'الفئة' : 'Catégorie' }}</span>
+                  <select formControlName="category">
+                    <option value="Tops">{{ categoryLabel('Tops') }}</option>
+                    <option value="Layers">{{ categoryLabel('Layers') }}</option>
+                    <option value="Bottoms">{{ categoryLabel('Bottoms') }}</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>{{ isAr() ? 'السعر (درهم) *' : 'Prix (MAD) *' }}</span>
+                  <input formControlName="price" type="number" min="0" step="1" />
+                </label>
+
+                <label class="field">
+                  <span>{{ isAr() ? 'الوسم' : 'Étiquette' }}</span>
+                  <input formControlName="tag" [placeholder]="isAr() ? 'أساسي / جديد' : 'Essentiel / Nouveauté'" />
+                </label>
+
+                <label class="field">
+                  <span>{{ isAr() ? 'حالة النشر' : 'Visibilité' }}</span>
+                  <select formControlName="status">
+                    <option value="active">{{ isAr() ? 'نشط (ظاهر في المتجر)' : 'Actif (visible en boutique)' }}</option>
+                    <option value="draft">{{ isAr() ? 'مسودة (مخفي)' : 'Brouillon (masqué)' }}</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-grid-2">
+                <label class="field">
+                  <span>{{ isAr() ? 'الخامة والوزن' : 'Matière & grammage' }}</span>
+                  <input formControlName="fabricNote" [placeholder]="isAr() ? 'قطن ممشط 260غ · خياطة مريحة' : 'Jersey coton peigné 260g/m² · Coutures plates'" />
+                </label>
+                <label class="field">
+                  <span>{{ isAr() ? 'ملاحظة المقاس' : 'Coupe & mannequin' }}</span>
+                  <input formControlName="fitNote" [placeholder]="isAr() ? 'قصة رياضية، العارض 1.83م يرتدي M' : 'Coupe athlétique. Mannequin 1m83, taille M.'" />
+                </label>
+              </div>
+
+              <label class="field">
+                <span>{{ isAr() ? 'وصف المنتج' : 'Description' }}</span>
+                <textarea formControlName="description" rows="3" [placeholder]="isAr() ? 'اكتب تفاصيل الخامة والاستعمال الرياضي.' : 'Décrivez la matière, la respirabilité et l’usage sportif.'"></textarea>
+              </label>
+
+              <div class="crm-divider-label">
+                {{ isAr() ? 'المقاس والكمية الأولية' : 'Stock initial (Taille & quantité)' }}
+              </div>
+
+              <div class="form-grid-2">
+                <label class="field">
+                  <span>{{ isAr() ? 'المقاس الأولي' : 'Taille initiale' }}</span>
+                  <input formControlName="initialSize" placeholder="M" />
+                </label>
+                <label class="field">
+                  <span>{{ isAr() ? 'الكمية المتوفرة' : 'Stock initial' }}</span>
+                  <input formControlName="initialStock" type="number" min="0" />
+                </label>
+              </div>
+
+              <div class="crm-divider-label">
+                {{ isAr() ? 'اللون والصور (' + stagedProductImages().length + ')' : 'Coloris & Photos WebP (' + stagedProductImages().length + ')' }}
+              </div>
+
+              <div class="crm-upload-zone">
+                <p class="crm-upload-hint">
+                  {{
+                    isAr()
+                      ? 'اختر اللون أدناه ثم أضف الصور. يتم ضغط الصور محلياً بصيغة WebP قبل الحفظ.'
+                      : 'Choisissez le coloris ci-dessous puis importez les photos correspondantes (compression WebP locale avant envoi vers R2 / SQLite).'
+                  }}
+                </p>
+
+                <!-- Unified Single Color Preview + Swatches + Spectrum Wheel -->
+                <div class="color-picker-block">
+                  <div class="color-preview-bar color-preview-hero">
+                    <span class="color-preview-chip color-preview-lg" [style.background]="newProductPhotoHex()"></span>
+                    <div class="color-preview-text">
+                      <span class="color-preview-kicker">{{ isAr() ? 'معاينة اللون المحدد' : 'Aperçu du coloris sélectionné' }}</span>
+                      <strong>{{ newProductPhotoName() || (isAr() ? 'بدون اسم' : 'Sans nom') }}</strong>
+                      <span class="tabular">{{ newProductPhotoHex() }}</span>
+                    </div>
+                  </div>
+
+                  <div class="color-preset-grid">
+                    @for (preset of colorPresets; track preset.hex) {
+                      <button
+                        type="button"
+                        class="color-preset-btn"
+                        [class.active]="newProductPhotoHex() === preset.hex.toUpperCase()"
+                        [style.background]="preset.hex"
+                        [title]="presetLabel(preset)"
+                        [attr.aria-label]="presetLabel(preset)"
+                        (click)="pickPhotoColorPreset(preset)"
+                      ></button>
+                    }
+                    <label
+                      class="color-wheel-swatch"
+                      [title]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                      [attr.aria-label]="isAr() ? 'لون مخصص' : 'Couleur personnalisée'"
+                    >
+                      <span class="wheel-plus" aria-hidden="true">+</span>
+                      <input
+                        type="color"
+                        class="sr-color-input"
+                        [value]="newProductPhotoHex()"
+                        (input)="onPhotoColorWheel($event)"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <label class="field">
+                  <span>{{ isAr() ? 'اسم اللون' : 'Nom du coloris' }}</span>
+                  <input formControlName="imageColor" [placeholder]="isAr() ? 'رمادي داكن / بيج رملي' : 'Anthracite / Beige Sable / Noir Mat'" />
+                </label>
+
+                <!-- Styled Upload Dropzone Button -->
+                <label class="upload-drop-btn" [class.busy]="compressingImages()">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  <span class="upload-drop-text">
+                    <strong>
+                      {{
+                        compressingImages()
+                          ? (isAr() ? 'جاري الضغط المحلي بصيغة WebP…' : 'Compression locale en WebP en cours…')
+                          : (isAr() ? 'اختيار صور لهذا اللون' : 'Importer des photos pour ce coloris')
+                      }}
+                    </strong>
+                    <small>
+                      {{
+                        isAr()
+                          ? 'يتم التصغير والضغط محلياً (400 / 800 / 1200 بكسل WebP) قبل الرفع إلى R2 / SQLite'
+                          : 'Redimensionnement et compression WebP locale (400 / 800 / 1200 px) avant envoi vers R2 / SQLite'
+                      }}
+                    </small>
+                  </span>
+                  <input type="file" accept="image/*" multiple class="sr-only" (change)="onNewProductImagePicked($event)" />
+                </label>
+
+                @if (addProgress(); as prog) {
+                  @if (prog.phase === 'compress') {
+                    <div class="upload-progress-box" aria-live="polite">
+                      <div class="upload-progress-head">
+                        <span class="upload-progress-label">{{ prog.label }}</span>
+                        <strong class="upload-progress-pct tabular">{{ prog.percent }}%</strong>
+                      </div>
+                      <div
+                        class="upload-progress-track"
+                        role="progressbar"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        [attr.aria-valuenow]="prog.percent"
+                      >
+                        <div class="upload-progress-fill" [style.width.%]="prog.percent"></div>
+                      </div>
+                    </div>
+                  }
+                }
+
+                @if (stagedProductImages().length) {
+                  <div class="crm-staged-grid">
+                    @for (item of stagedProductImages(); track item.id) {
+                      <div class="crm-gallery-card">
+                        <div class="crm-gallery-thumb">
+                          <img [src]="item.previewUrl" [alt]="item.color" />
+                        </div>
+                        <div class="crm-gallery-meta">
+                          <div class="crm-gallery-color-row">
+                            <span class="thumb-dot" [style.background]="item.colorHex"></span>
+                            <strong>{{ item.color }}</strong>
+                          </div>
+                          <span class="crm-gallery-hex tabular">{{ item.colorHex }} · {{ item.summary }}</span>
+                          <span class="compression-badge">{{ item.compressionNote }}</span>
+                          <div class="crm-gallery-actions">
+                            <button
+                              type="button"
+                              class="text-action text-danger"
+                              (click)="removeStagedImage(item.id)"
+                            >
+                              {{ isAr() ? 'إزالة' : 'Retirer' }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (addProgress(); as prog) {
+                @if (prog.phase === 'upload') {
+                  <div class="upload-progress-box" aria-live="polite">
+                    <div class="upload-progress-head">
+                      <span class="upload-progress-label">{{ prog.label }}</span>
+                      <strong class="upload-progress-pct tabular">{{ prog.percent }}%</strong>
+                    </div>
+                    <div
+                      class="upload-progress-track"
+                      role="progressbar"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      [attr.aria-valuenow]="prog.percent"
+                    >
+                      <div class="upload-progress-fill upload" [style.width.%]="prog.percent"></div>
+                    </div>
+                  </div>
+                }
+              }
+
+              <button type="submit" class="btn-primary" [disabled]="crmBusy()">
+                {{
+                  crmBusy()
+                    ? (isAr() ? 'جاري الحفظ…' : 'Enregistrement dans SQLite…')
+                    : (isAr() ? 'حفظ ونشر المنتج' : 'Créer et publier le produit')
+                }}
+              </button>
+            </form>
+          </section>
+        }
+
+        <!-- TAB 3: ORDERS -->
+        @if (activeTab() === 'orders') {
+          <section class="crm-panel">
+            <div class="crm-panel-head">
+              <div>
+                <h2>{{ isAr() ? 'متابعة طلبات الدفع عند الاستلام' : 'Suivi des commandes COD' }}</h2>
+                <p>
+                  {{
+                    isAr()
+                      ? 'إدارة مراحل التوصيل، تأكيد الطلبات عبر واتساب، واسترجاع المخزون تلقائياً عند الإلغاء.'
+                      : 'Suivez les expéditions, contactez les clients sur WhatsApp et restaurez automatiquement le stock en cas d’annulation.'
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <div class="crm-filter-bar">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-3.5-3.5" />
+                </svg>
+                <input
+                  type="search"
+                  [formControl]="orderSearchControl"
+                  [placeholder]="isAr() ? 'ابحث برقم الطلب، اسم العميل، الهاتف أو المدينة...' : 'Rechercher par numéro, client, téléphone ou ville...'"
+                  [attr.aria-label]="isAr() ? 'بحث في الطلبات' : 'Rechercher une commande'"
+                />
+              </div>
+            </div>
+
+            @if (filteredOrders().length) {
+              <div class="crm-list">
+                @for (order of filteredOrders(); track order.id) {
+                  <article class="crm-item-card">
+                    <div class="crm-order-head">
+                      <div>
+                        <div class="crm-meta-line tabular">
+                          <span>{{ order.order_number }}</span>
+                          <span aria-hidden="true">·</span>
+                          <span>{{ order.created_at }}</span>
+                          <span aria-hidden="true">·</span>
+                          <span>{{ orderStatusLabel(order.status) }}</span>
+                        </div>
+                        <h3>{{ order.full_name }} · {{ order.city }}</h3>
+                        <p class="crm-order-contact">{{ order.phone }} · {{ order.address }}</p>
+                        @if (order.delivery_note) {
+                          <p class="crm-order-note">
+                            {{ isAr() ? 'ملاحظة:' : 'Note :' }} {{ order.delivery_note }}
+                          </p>
+                        }
+                      </div>
+                      <strong class="crm-order-total tabular">{{ store.formatMAD(order.total) }}</strong>
+                    </div>
+
+                    @if (order.items?.length) {
+                      <div class="crm-order-items">
+                        @for (item of order.items; track item.sku + '-' + item.size) {
+                          <span class="tabular">{{ item.productName }} ({{ item.size }} · {{ item.color }}) × {{ item.quantity }}</span>
+                        }
+                      </div>
+                    }
+
+                    <div class="crm-order-controls">
+                      <a
+                        class="btn-secondary btn-sm"
+                        [href]="store.buildAdminOrderWhatsAppUrl(order)"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        {{ isAr() ? 'مراسلة العميل على واتساب' : 'Contacter sur WhatsApp' }}
+                      </a>
+
+                      <label class="inline-select-label">
+                        <span>{{ isAr() ? 'حالة الطلب' : 'Statut' }}</span>
+                        <select [value]="order.status" [disabled]="crmBusy()" (change)="onOrderStatusChange(order, $event)">
+                          @for (st of store.allowedOrderTransitions(order.status); track st) {
+                            <option [value]="st">{{ orderStatusLabel(st) }}</option>
+                          }
+                        </select>
+                      </label>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <div class="crm-empty-state">
+                <p>
+                  {{
+                    isAr()
+                      ? 'لا توجد طلبات مسجلة بعد. ستظهر الطلبات الجديدة هنا تلقائياً.'
+                      : 'Aucune commande enregistrée pour le moment.'
+                  }}
+                </p>
+              </div>
+            }
+          </section>
+        }
+
+        <!-- TAB 4: INVENTORY & ALERTS -->
+        @if (activeTab() === 'inventory') {
+          <section class="crm-panel">
+            <div class="crm-panel-head">
+              <div>
+                <h2>{{ isAr() ? 'التنبيهات وسجل المخزون' : 'Alertes & journal des stocks' }}</h2>
+                <p>
+                  {{
+                    isAr()
+                      ? 'مراجعة تنبيهات الطلبات الجديدة وتدقيق تطابق المخزون مع سجل الحركات.'
+                      : 'Consultez les notifications de commande et contrôlez l’état du stock par rapport au grand livre SQLite.'
+                  }}
+                </p>
+              </div>
+              @if (store.unreadNotificationCount() > 0) {
+                <button type="button" class="btn-secondary btn-sm" (click)="store.markAllNotificationsRead()">
+                  {{ isAr() ? 'تحديد الكل كمقروء' : 'Tout marquer comme lu' }}
+                </button>
+              }
+            </div>
+
+            <h3 class="crm-subheading">{{ isAr() ? 'تنبيهات الطلبات' : 'Notifications de commande' }}</h3>
+            @if (store.notifications().length) {
+              <div class="crm-list">
+                @for (n of store.notifications(); track n.id) {
+                  <article class="crm-notification-row" [class.unread]="!n.is_read">
+                    <div>
+                      <strong>{{ n.title }}</strong>
+                      <p>{{ n.message }}</p>
+                      <small class="tabular">{{ n.created_at }}</small>
+                    </div>
+                    @if (!n.is_read) {
+                      <button type="button" class="btn-secondary btn-sm" (click)="store.markNotificationRead(n.id)">
+                        {{ isAr() ? 'مقروء' : 'Marquer lu' }}
+                      </button>
+                    } @else {
+                      <span class="read-tag">{{ isAr() ? 'تمت القراءة' : 'Lu' }}</span>
+                    }
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="crm-muted-line">{{ isAr() ? 'لا توجد إشعارات.' : 'Aucune notification.' }}</p>
+            }
+
+            <h3 class="crm-subheading">{{ isAr() ? 'جرد وتدقيق المخزون' : 'Audit des stocks' }}</h3>
+            <div class="crm-table-wrap">
+              <table class="crm-table tabular">
+                <thead>
+                  <tr>
+                    <th>{{ isAr() ? 'المنتج' : 'Produit' }}</th>
+                    <th>SKU</th>
+                    <th>{{ isAr() ? 'المقاس / اللون' : 'Variante' }}</th>
+                    <th class="num">{{ isAr() ? 'المخزون' : 'Stock' }}</th>
+                    <th class="num">{{ isAr() ? 'السجل' : 'Journal' }}</th>
+                    <th class="num">{{ isAr() ? 'الفرق' : 'Écart' }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of store.inventoryAudit(); track row.variant_id) {
+                    <tr>
+                      <td>{{ row.product_name }}</td>
+                      <td>{{ row.sku }}</td>
+                      <td>{{ row.size }} · {{ row.color }}</td>
+                      <td class="num">{{ row.stock }}</td>
+                      <td class="num">{{ row.ledger_total }}</td>
+                      <td class="num">{{ row.difference }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="crm-subheading">{{ isAr() ? 'أحدث حركات المخزون' : 'Derniers mouvements de stock' }}</h3>
+            <div class="crm-filter-bar">
+              <div class="search-box">
+                <input
+                  type="search"
+                  [formControl]="movementSearchControl"
+                  [placeholder]="isAr() ? 'تصفية حسب المنتج، SKU أو رقم الطلب...' : 'Filtrer par SKU, produit, commande ou motif...'"
+                  [attr.aria-label]="isAr() ? 'تصفية حركات المخزون' : 'Filtrer les mouvements de stock'"
+                />
+              </div>
+            </div>
+
+            <div class="crm-table-wrap">
+              <table class="crm-table tabular">
+                <thead>
+                  <tr>
+                    <th>{{ isAr() ? 'المنتج' : 'Produit' }}</th>
+                    <th>{{ isAr() ? 'المقاس / اللون' : 'Variante' }}</th>
+                    <th>{{ isAr() ? 'السبب' : 'Motif' }}</th>
+                    <th class="num">{{ isAr() ? 'التغيير' : 'Delta' }}</th>
+                    <th>{{ isAr() ? 'التاريخ' : 'Date' }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (m of filteredMovements(); track m.id) {
+                    <tr>
+                      <td>{{ m.product_name }}</td>
+                      <td>{{ m.size }} · {{ m.color }}</td>
+                      <td>{{ m.order_number ? m.order_number + ' · ' : '' }}{{ m.reason }}</td>
+                      <td class="num">{{ m.quantity_delta > 0 ? '+' : '' }}{{ m.quantity_delta }}</td>
+                      <td>{{ m.created_at }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+        }
+
+        <!-- TAB 5: SETTINGS -->
+        @if (activeTab() === 'settings') {
+          <section class="crm-panel">
+            <div class="crm-panel-head">
+              <div>
+                <h2>{{ isAr() ? 'إعدادات المتجر والأمان' : 'Paramètres & sécurité' }}</h2>
+                <p>
+                  {{
+                    isAr()
+                      ? 'التحكم في إظهار الأسعار، رقم الواتساب، والربط مع Cloudflare Worker (D1 + R2).'
+                      : 'Gérez l’affichage des prix, le numéro WhatsApp et la connexion Cloudflare Worker (D1 + R2).'
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <div class="crm-setting-block">
+              <div>
+                <h3>{{ isAr() ? 'إظهار الأسعار في المتجر' : 'Affichage des prix publics' }}</h3>
+                <p>
+                  {{
+                    isAr()
+                      ? 'عند التعطيل يتحول المتجر إلى نظام الاستفسار المباشر عبر واتساب.'
+                      : 'Désactivez cette option pour passer la boutique en mode demande sur WhatsApp uniquement.'
+                  }}
+                </p>
+              </div>
+              <label class="toggle-control">
+                <input
+                  type="checkbox"
+                  [checked]="store.priceVisible()"
+                  [disabled]="crmBusy()"
+                  (change)="togglePriceVisibility($event)"
+                />
+                <span>
+                  {{
+                    store.priceVisible()
+                      ? (isAr() ? 'الأسعار ظاهرة' : 'Prix visibles')
+                      : (isAr() ? 'استفسار فقط' : 'Sur demande')
+                  }}
+                </span>
+              </label>
+            </div>
+
+            <form class="crm-create-form" [formGroup]="settingsForm" (ngSubmit)="saveStoreSettings()">
+              <div class="form-grid-2">
+                <label class="field">
+                  <span>{{ isAr() ? 'رقم واتساب المتجر (دولي بدون +)' : 'WhatsApp boutique (format international)' }}</span>
+                  <input formControlName="whatsapp" placeholder="212695083880" />
+                </label>
+                <label class="field">
+                  <span>{{ isAr() ? 'رابط Cloudflare Worker API (اختياري)' : 'URL API Cloudflare Worker (optionnel)' }}</span>
+                  <input formControlName="apiUrl" [placeholder]="isAr() ? 'اتركه فارغاً لاستخدام اتصال D1 المدمج' : 'Laisser vide pour le backend D1 intégré'" />
+                </label>
+              </div>
+              <button type="submit" class="btn-primary btn-sm">
+                {{ isAr() ? 'حفظ الإعدادات' : 'Enregistrer' }}
+              </button>
+            </form>
+
+            <div class="crm-setting-note">
+              <strong>
+                {{
+                  isAr()
+                    ? 'قاعدة بيانات Cloudflare D1 (' + store.d1Status().databaseName + ')'
+                    : 'Base de données Cloudflare D1 (' + store.d1Status().databaseName + ')'
+                }}
+              </strong>
+              <p class="tabular">
+                ID : {{ store.d1Status().databaseId }} · Account : {{ store.d1Status().accountId }}
+              </p>
+              <p>
+                @if (store.d1Status().mode === 'cloudflare-d1') {
+                  {{
+                    isAr()
+                      ? 'الاتصال بقاعدة بيانات Cloudflare D1 مفعّل بالكامل.'
+                      : 'Connexion Cloudflare D1 active. Toutes les opérations produits, stocks et commandes s’exécutent sur D1.'
+                  }}
+                } @else {
+                  {{
+                    isAr()
+                      ? 'أضف متغير البيئة CF_D1_API_TOKEN على الخادم (أو رابط Worker) للربط المباشر مع Cloudflare D1.'
+                      : 'Ajoutez la variable serveur CF_D1_API_TOKEN (ou l’URL du Worker) pour basculer du fallback SQLite local vers Cloudflare D1.'
+                  }}
+                }
+              </p>
+            </div>
+
+            <div class="crm-setting-note">
+              <strong>
+                {{
+                  isAr()
+                    ? 'تخزين الصور المباشر في Cloudflare R2 (' + store.r2Status().bucket + ')'
+                    : 'Stockage direct Cloudflare R2 (' + store.r2Status().bucket + ')'
+                }}
+              </strong>
+              <p class="tabular">
+                {{ store.r2Status().publicBaseUrl }}
+              </p>
+              <p>
+                @if (store.r2Status().configured) {
+                  {{
+                    isAr()
+                      ? 'الاتصال المباشر بحاوية R2 مفعّل. يتم رفع صور WebP مباشرة إلى mokiko.'
+                      : 'Connexion directe R2 active. Les images WebP compressées sont envoyées directement vers le bucket mokiko.'
+                  }}
+                } @else {
+                  {{
+                    isAr()
+                      ? 'لتفعيل الرفع المباشر إلى mokiko، أضف مفاتيح R2_ACCESS_KEY_ID و R2_SECRET_ACCESS_KEY في إعدادات الخادم (Secrets).'
+                      : 'Pour activer l’envoi direct vers mokiko, renseignez R2_ACCESS_KEY_ID et R2_SECRET_ACCESS_KEY dans les secrets du serveur.'
+                  }}
+                }
+              </p>
+            </div>
+
+            <div class="crm-setting-note">
+              <strong>{{ isAr() ? 'إعداد رمز PIN يدوياً' : 'Configuration manuelle du code PIN' }}</strong>
+              <p>
+                {{
+                  isAr()
+                    ? 'حدد متغير البيئة ADMIN_PIN على الخادم أو Cloudflare Worker لتثبيت رمز الدخول يدوياً.'
+                    : 'Définissez la variable d’environnement ADMIN_PIN sur le serveur ou Worker Cloudflare pour imposer votre code PIN manuellement.'
+                }}
+              </p>
+            </div>
+
+            <div class="crm-utility-actions">
+              <button type="button" class="btn-secondary btn-sm" (click)="downloadCatalogJson()">
+                {{ isAr() ? 'تصدير الكتالوج JSON' : 'Exporter le catalogue JSON' }}
+              </button>
+            </div>
+          </section>
+        }
+      </div>
+    </div>
+  </div>
+}

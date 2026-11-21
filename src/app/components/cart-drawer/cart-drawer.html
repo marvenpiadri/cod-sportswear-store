@@ -1,0 +1,135 @@
+@if (store.priceVisible() && store.cartOpen()) {
+  <div class="drawer-backdrop" (click)="store.cartOpen.set(false)">
+    <aside
+      class="side-drawer"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="isAr() ? 'سلة التسوق' : 'Votre panier'"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-eyebrow">{{ isAr() ? 'اختياراتك' : 'Votre sélection' }}</span>
+          <h2>
+            {{ isAr() ? 'سلة التسوق' : 'Votre Panier' }}
+            <span class="tabular">({{ store.cartCount() }})</span>
+          </h2>
+        </div>
+        <button
+          type="button"
+          class="icon-close"
+          [attr.aria-label]="isAr() ? 'إغلاق السلة' : 'Fermer le panier'"
+          (click)="store.cartOpen.set(false)"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="delivery-meter">
+        <p class="delivery-meter-copy">
+          @if (store.remainingForFreeDelivery() > 0) {
+            @if (isAr()) {
+              أضف <strong class="tabular">{{ store.formatMAD(store.remainingForFreeDelivery()) }}</strong> للاستفادة من التوصيل المجاني
+            } @else {
+              Ajoutez <strong class="tabular">{{ store.formatMAD(store.remainingForFreeDelivery()) }}</strong> pour bénéficier de la livraison gratuite
+            }
+          } @else {
+            {{ isAr() ? 'التوصيل السريع مجاني متاح لطلبك' : 'Livraison express gratuite débloquée partout au Maroc' }}
+          }
+        </p>
+        <div class="delivery-track" aria-hidden="true">
+          <div class="delivery-fill" [style.width.%]="store.freeDeliveryProgress()"></div>
+        </div>
+      </div>
+
+      @if (store.cart().length) {
+        <div class="bag-list">
+          @for (item of store.cart(); track item.product.id + '-' + (item.variant?.id || 0)) {
+            <article class="bag-item">
+              <div class="bag-thumb">
+                <img
+                  [src]="store.getProductImageForVariant(item.product, item.variant)"
+                  [alt]="item.product.name"
+                  referrerpolicy="no-referrer"
+                />
+              </div>
+              <div class="bag-meta">
+                <div class="bag-meta-top">
+                  <strong>{{ item.product.name }}</strong>
+                  <span class="tabular">{{ store.formatMAD((item.product.price ?? 0) * item.quantity) }}</span>
+                </div>
+                <p class="bag-variant">
+                  {{ item.variant ? item.variant.size + ' · ' + item.variant.color : 'Standard' }}
+                  · {{ store.formatMAD(item.product.price ?? 0) }} {{ isAr() ? '/ قطعة' : '/ unité' }}
+                </p>
+                <div class="bag-controls">
+                  <div class="stepper">
+                    <button
+                      type="button"
+                      [attr.aria-label]="isAr() ? 'تقليل الكمية' : 'Diminuer la quantité'"
+                      (click)="store.decreaseCartQuantity(item.product.id, item.variant?.id)"
+                    >
+                      −
+                    </button>
+                    <span class="tabular">{{ item.quantity }}</span>
+                    <button
+                      type="button"
+                      [attr.aria-label]="isAr() ? 'زيادة الكمية' : 'Augmenter la quantité'"
+                      (click)="store.increaseCartQuantity(item.product.id, item.variant?.id)"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    class="text-link-muted"
+                    (click)="store.removeCartItem(item.product.id, item.variant?.id)"
+                  >
+                    {{ isAr() ? 'حذف' : 'Retirer' }}
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (store.cartError()) {
+          <p class="form-feedback-error" role="status">{{ store.cartError() }}</p>
+        }
+
+        <div class="drawer-footer">
+          <div class="summary-row">
+            <span>{{ isAr() ? 'المجموع الفرعي' : 'Sous-total' }}</span>
+            <strong class="tabular">{{ store.formatMAD(store.subtotal()) }}</strong>
+          </div>
+          <p class="summary-note">
+            {{
+              isAr()
+                ? 'الدفع نقداً عند الاستلام. تأكيد سريع عبر واتساب قبل الشحن.'
+                : 'Paiement en espèces à la réception. Confirmation rapide via WhatsApp avant expédition.'
+            }}
+          </p>
+          <button type="button" class="btn-primary btn-full" (click)="openCheckout()">
+            {{ isAr() ? 'إتمام الطلب (COD)' : 'Passer à la commande (COD)' }}
+          </button>
+          <button
+            type="button"
+            class="btn-secondary btn-full"
+            (click)="store.cartOpen.set(false)"
+          >
+            {{ isAr() ? 'مواصلة التسوق' : 'Continuer les achats' }}
+          </button>
+        </div>
+      } @else {
+        <div class="drawer-empty">
+          <p>{{ isAr() ? 'سلة التسوق فارغة حالياً.' : 'Votre panier est actuellement vide.' }}</p>
+          <button type="button" class="btn-secondary" (click)="store.cartOpen.set(false)">
+            {{ isAr() ? 'تصفح المنتجات' : 'Voir la collection' }}
+          </button>
+        </div>
+      }
+    </aside>
+  </div>
+}

@@ -1,0 +1,3 @@
+ALTER TABLE image_assets ADD COLUMN color TEXT NOT NULL DEFAULT '';
+ALTER TABLE image_assets ADD COLUMN color_hex TEXT;
+ALTER TABLE image_assets ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;

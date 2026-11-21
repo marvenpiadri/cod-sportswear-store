@@ -1,0 +1,257 @@
+@if (product(); as detail) {
+  <div class="drawer-backdrop" (click)="store.closeProduct()">
+    <section
+      class="detail-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="detail-title"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="icon-close detail-close"
+        [attr.aria-label]="isAr() ? 'إغلاق تفاصيل المنتج' : 'Fermer la fiche produit'"
+        (click)="store.closeProduct()"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div class="detail-media-col">
+        <div class="detail-media">
+          @if (!imageFailed()) {
+            <img
+              [src]="activeImageUrl()"
+              [alt]="activeImage()?.alt_text || detail.name"
+              referrerpolicy="no-referrer"
+              (error)="imageFailed.set(true)"
+            />
+          } @else {
+            <div class="media-fallback">
+              <span>{{ detail.name }}</span>
+            </div>
+          }
+          @if (activeImage()?.color || detail.tag) {
+            <span class="detail-media-caption">
+              {{ activeImage()?.color ? activeImage()?.color : categoryLabel(detail.category) + ' / ' + detail.tag }}
+            </span>
+          }
+        </div>
+
+        @if (detail.images.length > 1) {
+          <div class="detail-thumbs" role="list" [attr.aria-label]="isAr() ? 'صور الألوان' : 'Photos par coloris'">
+            @for (img of detail.images; track img.id) {
+              <button
+                type="button"
+                class="detail-thumb-btn"
+                [class.selected]="activeImage()?.id === img.id"
+                [attr.aria-label]="(isAr() ? 'عرض ' : 'Voir ') + (img.color || detail.name)"
+                (click)="selectImage(img)"
+              >
+                <img [src]="img.url" [alt]="img.alt_text || detail.name" referrerpolicy="no-referrer" />
+                @if (img.color) {
+                  <span class="detail-thumb-color">
+                    @if (img.color_hex) {
+                      <span class="thumb-dot" [style.background]="img.color_hex"></span>
+                    }
+                    <span>{{ img.color }}</span>
+                  </span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="detail-body">
+        <div class="detail-kicker">
+          <span>{{ categoryLabel(detail.category) }}</span>
+          @if (detail.tag) {
+            <span aria-hidden="true">·</span>
+            <span>{{ detail.tag }}</span>
+          }
+        </div>
+
+        <h2 id="detail-title" class="detail-title">{{ detail.name }}</h2>
+
+        @if (store.priceVisible() && detail.price !== null) {
+          <div class="detail-price tabular">{{ store.formatMAD(detail.price) }}</div>
+        } @else {
+          <div class="detail-price-muted">
+            {{ isAr() ? 'السعر عند الاستفسار' : 'Prix sur demande' }}
+          </div>
+        }
+
+        <p class="detail-description">
+          {{ detail.description || (isAr() ? 'قطعة رياضية مصممة للتدريب اليومي والراحة المستمرة.' : 'Vêtement technique conçu pour l’entraînement intensif et le confort quotidien.') }}
+        </p>
+
+        @if (detail.fabricNote || detail.fitNote) {
+          <div class="detail-specs">
+            @if (detail.fabricNote) {
+              <p><strong>{{ isAr() ? 'الخامة' : 'Matière' }}</strong> {{ detail.fabricNote }}</p>
+            }
+            @if (detail.fitNote) {
+              <p><strong>{{ isAr() ? 'القصة' : 'Coupe' }}</strong> {{ detail.fitNote }}</p>
+            }
+          </div>
+        }
+
+        @if (colorOptions().length) {
+          <div class="detail-section">
+            <div class="detail-section-head">
+              <span class="section-label">{{ isAr() ? 'اللون' : 'Coloris' }}</span>
+              <span class="section-value">{{ activeColorName() }}</span>
+            </div>
+            <div class="swatch-row">
+              @for (opt of colorOptions(); track opt.hex) {
+                <button
+                  type="button"
+                  class="swatch-btn"
+                  [class.selected]="selectedColorHex()?.toLowerCase() === opt.hex.toLowerCase()"
+                  [attr.aria-label]="(isAr() ? 'اختيار اللون ' : 'Choisir le coloris ') + opt.color"
+                  [title]="opt.color"
+                  (click)="selectColor(opt.hex)"
+                >
+                  <span class="swatch-dot" [style.background]="opt.hex"></span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (detail.variants.length) {
+          <div class="detail-section">
+            <div class="detail-section-head">
+              <span class="section-label">{{ isAr() ? 'اختر المقاس' : 'Choisir la taille' }}</span>
+              <button
+                type="button"
+                class="text-action"
+                (click)="sizeGuideOpen.set(!sizeGuideOpen())"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M3 7h18v10H3zM7 7v4M11 7v3M15 7v4M19 7v3" />
+                </svg>
+                <span>
+                  {{
+                    sizeGuideOpen()
+                      ? (isAr() ? 'إخفاء دليل المقاسات' : 'Masquer le guide')
+                      : (isAr() ? 'دليل المقاسات' : 'Guide des tailles')
+                  }}
+                </span>
+              </button>
+            </div>
+
+            <div class="variant-grid">
+              @for (variant of detail.variants; track variant.id) {
+                <button
+                  type="button"
+                  class="variant-tile"
+                  [class.selected]="selectedVariant()?.id === variant.id"
+                  [disabled]="variant.stock < 1"
+                  (click)="selectVariant(variant)"
+                >
+                  <span class="variant-size">{{ variant.size }} · {{ variant.color }}</span>
+                  <span class="variant-stock tabular">
+                    @if (variant.stock > 0) {
+                      {{ variant.stock }} {{ isAr() ? 'متوفر' : 'en stock' }}
+                    } @else {
+                      {{ isAr() ? 'نفذت الكمية' : 'Rupture' }}
+                    }
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (sizeGuideOpen()) {
+          <div class="size-guide-box">
+            <div class="size-guide-header">
+              <strong>{{ isAr() ? 'القياسات (سم)' : 'Mesures (cm)' }}</strong>
+              <div class="segmented-mini">
+                <button
+                  type="button"
+                  [class.active]="sizeGuideMode() === 'body'"
+                  (click)="sizeGuideMode.set('body')"
+                >
+                  {{ isAr() ? 'الجسم' : 'Corps' }}
+                </button>
+                <button
+                  type="button"
+                  [class.active]="sizeGuideMode() === 'garment'"
+                  (click)="sizeGuideMode.set('garment')"
+                >
+                  {{ isAr() ? 'القطعة مسطحة' : 'Vêtement à plat' }}
+                </button>
+              </div>
+            </div>
+            <table class="size-table tabular">
+              <thead>
+                <tr>
+                  <th>{{ isAr() ? 'المقاس' : 'Taille' }}</th>
+                  <th>{{ isAr() ? 'الصدر' : 'Poitrine' }}</th>
+                  <th>{{ isAr() ? 'الخصر' : 'Taille' }}</th>
+                  <th>
+                    {{
+                      sizeGuideMode() === 'body'
+                        ? (isAr() ? 'الطول' : 'Stature')
+                        : (isAr() ? 'طول القطعة' : 'Longueur')
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of sizeRows(); track row.size) {
+                  <tr>
+                    <td>{{ row.size }}</td>
+                    <td>{{ row.chest }}</td>
+                    <td>{{ row.waist }}</td>
+                    <td>{{ row.length }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (store.priceVisible()) {
+          <button
+            type="button"
+            class="btn-primary btn-full detail-cta"
+            [disabled]="!canPurchase()"
+            (click)="addSelectedToCart()"
+          >
+            {{ isAr() ? 'أضف إلى السلة' : 'Ajouter au panier' }}
+          </button>
+        } @else {
+          <a
+            class="btn-primary btn-full detail-cta"
+            [href]="inquiryUrl()"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ isAr() ? 'استفسر عبر واتساب' : 'Demander sur WhatsApp' }}
+          </a>
+        }
+
+        <p class="detail-assurance">
+          @if (store.priceVisible()) {
+            {{
+              isAr()
+                ? 'الدفع نقداً عند الاستلام في جميع مدن المغرب · تأكيد الطلب عبر واتساب.'
+                : 'Paiement en espèces à la livraison partout au Maroc · Confirmation via WhatsApp avant envoi.'
+            }}
+          } @else {
+            {{
+              isAr()
+                ? 'تواصل مباشر عبر واتساب لمعرفة التوفر والمقاسات.'
+                : 'Contact direct sur WhatsApp pour la disponibilité et les tailles.'
+            }}
+          }
+        </p>
+      </div>
+    </section>
+  </div>
+}
