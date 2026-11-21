@@ -60,3 +60,4 @@ body{background:var(--paper)}
 
 /* Lightweight order and inventory tools */
 .inventory-audit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.inventory-audit-list .admin-product{margin:0}@media(max-width:560px){.inventory-audit-list{grid-template-columns:1fr}}
+\n/* Price visibility control and product-detail polish */\n.price-setting{padding:18px 0;border-block:1px solid var(--line);margin:18px 0}.price-setting p{font-size:12px;color:var(--muted)}.price-toggle{display:flex;align-items:center;gap:12px;margin:14px 0;cursor:pointer;font:11px 'DM Mono';letter-spacing:.08em}.price-toggle input{accent-color:var(--ink);width:18px;height:18px}.detail-panel{overflow-y:auto}.detail-panel .cta{margin-top:18px}.detail-panel .detail-description{max-width:60ch}.product-image .quick-add{min-width:130px}.price-setting h3{margin:0}\n
