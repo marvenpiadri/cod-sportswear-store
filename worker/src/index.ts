@@ -11,7 +11,8 @@ async function adminAuth(request:Request,env:Env){
  await env.DB.prepare('INSERT INTO admin_pin_attempts(ip,attempted_at) VALUES(?,?)').bind(ip,new Date().toISOString()).run(); return {ok:false,response:json({error:'Unauthorized'},401)};
 }
 const mediaUrl=(env:Env,key:string)=>env.PUBLIC_MEDIA_BASE?`${env.PUBLIC_MEDIA_BASE.replace(/\/$/,'')}/${key}`:null;
-async function readPriceVisibility(env:Env){const row:any=await env.DB.prepare(\"SELECT value FROM store_settings WHERE key='price_visible'\").first();return row?.value!=='0';}\nasync function catalog(env:Env,activeOnly:boolean){
+async function readPriceVisibility(env:Env){const row:any=await env.DB.prepare("SELECT value FROM store_settings WHERE key='price_visible'").first();return row?.value!=='0';}
+async function catalog(env:Env,activeOnly:boolean){
  const sql=activeOnly?"SELECT id,slug,name,description,price,status FROM products WHERE status='active' ORDER BY created_at DESC":"SELECT id,slug,name,description,price,status FROM products ORDER BY created_at DESC";
  const {results}=await env.DB.prepare(sql).all();
  const priceVisible=await readPriceVisibility(env);return Promise.all(results.map(async(p:any)=>{const {results:images}=await env.DB.prepare('SELECT a.id,a.alt_text,v.width,v.r2_key,v.byte_size FROM image_assets a JOIN image_variants v ON v.image_asset_id=a.id WHERE a.product_id=? ORDER BY a.id,v.width').bind(p.id).all();const {results:variants}=await env.DB.prepare('SELECT id,sku,size,color,color_hex,stock FROM product_variants WHERE product_id=? AND active=1 ORDER BY size,color').bind(p.id).all();return {...(priceVisible?p:{...p,price:null}),images:images.map((i:any)=>({...i,url:mediaUrl(env,i.r2_key)})),variants};}));
@@ -20,8 +21,11 @@ export default { async fetch(request: Request, env: Env): Promise<Response> {
  const url=new URL(request.url);
  if(request.method==='OPTIONS')return cors(new Response(null,{status:204}));
  if(url.pathname==='/api/health')return cors(json({ok:true,service:'cod-sportswear-api'}));
- if(url.pathname==='/api/products'&&request.method==='GET')return cors(json(await catalog(env,true)));\n if(url.pathname==='/api/store-settings'&&request.method==='GET')return cors(json({priceVisible:await readPriceVisibility(env)}));\n if(url.pathname==='/api/admin/store-settings'&&request.method==='PATCH'){const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);let body:any;try{body=await request.json();}catch{return cors(json({error:'Invalid JSON'},400));}if(typeof body.priceVisible!=='boolean')return cors(json({error:'priceVisible must be boolean.'},400));await env.DB.prepare(\"INSERT INTO store_settings(key,value) VALUES('price_visible',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value\").bind(body.priceVisible?'1':'0').run();return cors(json({priceVisible:body.priceVisible}));}
- if(url.pathname==='/api/orders'&&request.method==='POST'){\n  if(!(await readPriceVisibility(env)))return cors(json({error:'Online ordering is currently unavailable.'},403));
+ if(url.pathname==='/api/products'&&request.method==='GET')return cors(json(await catalog(env,true)));
+ if(url.pathname==='/api/store-settings'&&request.method==='GET')return cors(json({priceVisible:await readPriceVisibility(env)}));
+ if(url.pathname==='/api/admin/store-settings'&&request.method==='PATCH'){const auth=await adminAuth(request,env);if(!auth.ok)return cors(auth.response!);let body:any;try{body=await request.json();}catch{return cors(json({error:'Invalid JSON'},400));}if(typeof body.priceVisible!=='boolean')return cors(json({error:'priceVisible must be boolean.'},400));await env.DB.prepare("INSERT INTO store_settings(key,value) VALUES('price_visible',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(body.priceVisible?'1':'0').run();return cors(json({priceVisible:body.priceVisible}));}
+ if(url.pathname==='/api/orders'&&request.method==='POST'){
+  if(!(await readPriceVisibility(env)))return cors(json({error:'Online ordering is currently unavailable.'},403));
   // Lightweight persistent checkout throttling: 5 submissions/IP per 15 minutes.
   const ip=request.headers.get('CF-Connecting-IP')||'unknown';const cutoff=new Date(Date.now()-15*60*1000).toISOString();
   await env.DB.prepare('DELETE FROM order_attempts WHERE attempted_at<?').bind(cutoff).run();
