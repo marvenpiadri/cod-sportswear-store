@@ -33,7 +33,7 @@ async function authorized(request: Request, env: Env): Promise<boolean> {
   const auth = request.headers.get('Authorization') || '';
   if (!auth.startsWith('Bearer ')) return false;
   const submitted = auth.slice('Bearer '.length).trim();
-  if (!/^\\d+$/.test(submitted)) return false;
+  if (!/^[0-9]+$/.test(submitted)) return false;
   const row = await env.DB.prepare('SELECT pin FROM admin_pins ORDER BY id LIMIT 1').first<{ pin: number | string }>();
   const expected = row == null ? '' : String(row.pin).trim();
   return Boolean(expected) && timingSafeEqualStr(submitted, expected);
@@ -195,7 +195,8 @@ export default {
     }
 
     if (url.pathname === '/api/admin/auth-status' && request.method === 'GET') {
-      const pin = await env.DB.prepare('SELECT pin FROM admin_pins LIMIT 1').first<{ pin: number | string }>();\n      return cors(json({ configured: pin != null, mode: 'database' }));
+      const pin = await env.DB.prepare('SELECT pin FROM admin_pins LIMIT 1').first<{ pin: number | string }>();
+      return cors(json({ configured: pin != null, mode: 'database' }));
     }
 
     if (url.pathname === '/api/admin/d1-status' && request.method === 'GET') {
