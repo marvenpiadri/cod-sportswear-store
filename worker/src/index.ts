@@ -1,7 +1,6 @@
 export interface Env {
   DB: D1Database;
   PRODUCT_MEDIA: R2Bucket;
-  ADMIN_PIN?: string;
   PUBLIC_MEDIA_BASE?: string;
   R2_BUCKET?: string;
   CF_ACCOUNT_ID?: string;
@@ -30,12 +29,15 @@ function timingSafeEqualStr(a: string, b: string): boolean {
   return mismatch === 0;
 }
 
-const authorized = (request: Request, env: Env) => {
-  const expected = env.ADMIN_PIN?.trim() || '';
+async function authorized(request: Request, env: Env): Promise<boolean> {
   const auth = request.headers.get('Authorization') || '';
-  if (!expected || !auth.startsWith('Bearer ')) return false;
-  return timingSafeEqualStr(auth.slice('Bearer '.length).trim(), expected);
-};
+  if (!auth.startsWith('Bearer ')) return false;
+  const submitted = auth.slice('Bearer '.length).trim();
+  if (!/^\\d+$/.test(submitted)) return false;
+  const row = await env.DB.prepare('SELECT pin FROM admin_pins ORDER BY id LIMIT 1').first<{ pin: number | string }>();
+  const expected = row == null ? '' : String(row.pin).trim();
+  return Boolean(expected) && timingSafeEqualStr(submitted, expected);
+}
 
 const ADMIN_LIMIT = 10;
 const ADMIN_WINDOW_MS = 15 * 60 * 1000;
@@ -54,7 +56,7 @@ async function adminAuth(request: Request, env: Env) {
       response: json({ error: 'Too many PIN attempts. Try again in 15 minutes.' }, 429),
     };
   }
-  if (authorized(request, env)) {
+  if (await authorized(request, env)) {
     await env.DB.prepare('DELETE FROM admin_pin_attempts WHERE attempted_at < ?').bind(cutoff).run();
     return { ok: true };
   }
@@ -193,7 +195,7 @@ export default {
     }
 
     if (url.pathname === '/api/admin/auth-status' && request.method === 'GET') {
-      return cors(json({ configured: Boolean(env.ADMIN_PIN?.trim()), mode: 'env' }));
+      const pin = await env.DB.prepare('SELECT pin FROM admin_pins LIMIT 1').first<{ pin: number | string }>();\n      return cors(json({ configured: pin != null, mode: 'database' }));
     }
 
     if (url.pathname === '/api/admin/d1-status' && request.method === 'GET') {
