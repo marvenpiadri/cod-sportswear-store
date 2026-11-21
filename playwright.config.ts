@@ -14,7 +14,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm start -- --host 0.0.0.0 --port 4200',
+    // Run the Angular client directly for browser tests. E2E specs mock API
+    // responses as needed, so the server-side D1 credentials are not required.
+    command: 'npm run dev -- --host 0.0.0.0 --port 4200',
     url: 'http://localhost:4200',
     reuseExistingServer: !process.env.CI,
     timeout: 60000,
