@@ -37,7 +37,7 @@
           {{
             isAr()
               ? 'قم بتعيين رمز سري مكون من 4 إلى 8 أرقام لحماية لوحة الإدارة. يتم تشفيره وحفظه في قاعدة البيانات.'
-              : 'Définissez votre code PIN secret (4 à 8 chiffres) pour verrouiller cet espace CRM. Il est chiffré (scrypt) dans SQLite.'
+              : 'Définissez votre code PIN secret (4 à 8 chiffres) pour verrouiller cet espace CRM. Il est chiffré (scrypt) dans la base de données.'
           }}
         </p>
 
@@ -130,7 +130,7 @@
           <button type="button" class="text-action gate-api-toggle" (click)="showApiConfig.set(!showApiConfig())">
             {{
               showApiConfig()
-                ? (isAr() ? 'استخدام قاعدة SQLite المحلية' : 'Utiliser la base SQLite intégrée')
+                ? (isAr() ? 'استخدام التخزين المدمج' : 'Utiliser le stockage intégré')
                 : (isAr() ? 'الربط مع Cloudflare Worker (اختياري)' : 'Connecter une API Worker distante (optionnel)')
             }}
           </button>
@@ -242,9 +242,9 @@
             @if (store.apiUrl()) {
               Cloudflare Worker (D1 + R2)
             } @else if (store.r2Status().configured) {
-              SQLite + R2 ({{ store.r2Status().bucket }})
+              Cloudflare R2 ({{ store.r2Status().bucket }})
             } @else {
-              SQLite + Média local
+              Stockage local
             }
           </div>
         </div>
@@ -268,7 +268,7 @@
           <div class="crm-kpi">
             <span class="kpi-label">{{ isAr() ? 'طلبات COD' : 'Commandes COD' }}</span>
             <strong class="kpi-value tabular">{{ store.orders().length }}</strong>
-            <span class="kpi-sub">{{ store.apiUrl() ? 'Worker D1' : 'SQLite' }}</span>
+            <span class="kpi-sub">{{ isAr() ? 'إجمالي الطلبات' : 'total des commandes' }}</span>
           </div>
           <div class="crm-kpi">
             <span class="kpi-label">{{ isAr() ? 'إشعارات جديدة' : 'Alertes non lues' }}</span>
@@ -585,7 +585,7 @@
                                 [attr.aria-label]="isAr() ? 'اسم لون الصورة' : 'Nom coloris photo'"
                               />
                               <button type="submit" class="btn-primary btn-sm" [disabled]="crmBusy()">
-                                {{ isAr() ? 'رفع وحفظ الصورة' : 'Téléverser vers R2 / SQLite' }}
+                                {{ isAr() ? 'رفع وحفظ الصورة' : 'Téléverser vers Cloudflare R2' }}
                               </button>
                               <button type="button" class="btn-ghost btn-sm" (click)="cancelRowImageUpload()">
                                 {{ isAr() ? 'إلغاء' : 'Annuler' }}
@@ -925,7 +925,7 @@
                       {{
                         isAr()
                           ? 'يتم التصغير والضغط محلياً (400 / 800 / 1200 بكسل WebP) قبل الرفع إلى R2 / SQLite'
-                          : 'Redimensionnement et compression WebP locale (400 / 800 / 1200 px) avant envoi vers R2 / SQLite'
+                          : 'Redimensionnement et compression WebP locale (400 / 800 / 1200 px) avant envoi vers Cloudflare R2'
                       }}
                     </small>
                   </span>
@@ -1005,7 +1005,7 @@
               <button type="submit" class="btn-primary" [disabled]="crmBusy()">
                 {{
                   crmBusy()
-                    ? (isAr() ? 'جاري الحفظ…' : 'Enregistrement dans SQLite…')
+                    ? (isAr() ? 'جاري الحفظ…' : 'Enregistrement…')
                     : (isAr() ? 'حفظ ونشر المنتج' : 'Créer et publier le produit')
                 }}
               </button>
@@ -1122,7 +1122,7 @@
                   {{
                     isAr()
                       ? 'مراجعة تنبيهات الطلبات الجديدة وتدقيق تطابق المخزون مع سجل الحركات.'
-                      : 'Consultez les notifications de commande et contrôlez l’état du stock par rapport au grand livre SQLite.'
+                      : 'Consultez les notifications de commande et contrôlez l’état du stock.'
                   }}
                 </p>
               </div>
@@ -1288,8 +1288,8 @@
               <strong>
                 {{
                   isAr()
-                    ? 'قاعدة بيانات Cloudflare D1 (' + store.d1Status().databaseName + ')'
-                    : 'Base de données Cloudflare D1 (' + store.d1Status().databaseName + ')'
+                    ? 'قاعدة البيانات المتصلة (' + store.d1Status().databaseName + ')'
+                    : 'Base de données connectée (' + store.d1Status().databaseName + ')'
                 }}
               </strong>
               <p class="tabular">
@@ -1299,7 +1299,7 @@
                 @if (store.d1Status().mode === 'cloudflare-d1') {
                   {{
                     isAr()
-                      ? 'الاتصال بقاعدة بيانات Cloudflare D1 مفعّل بالكامل.'
+                      ? 'الاتصال بقاعدة البيانات المتصلة مفعّل بالكامل.'
                       : 'Connexion Cloudflare D1 active. Toutes les opérations produits, stocks et commandes s’exécutent sur D1.'
                   }}
                 } @else {

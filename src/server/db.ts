@@ -1,13 +1,7 @@
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
-import type { DatabaseSync } from 'node:sqlite';
 import { d1Batch, d1Query, getD1Config } from './d1';
 
-const require = createRequire(import.meta.url);
-const { DatabaseSync: NativeDatabaseSync } = require('node:sqlite') as typeof import('node:sqlite');
-
-const DEFAULT_DB_PATH = path.resolve(process.cwd(), 'data', 'store.sqlite');
 export const UPLOAD_ROOT = path.resolve(process.cwd(), 'data', 'uploads');
 
 export type SqlParam = string | number | null;
@@ -46,7 +40,6 @@ export interface DbClient {
 
 let dbPromise: Promise<DbClient> | null = null;
 let cachedMode: 'cloudflare-d1' | 'local-sqlite' | null = null;
-let loggedFallbackNotice = false;
 
 export function getDbStatus(): DbStatus {
   const d1 = getD1Config();
@@ -74,33 +67,14 @@ async function initDbClient(): Promise<DbClient> {
   fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
   const d1 = getD1Config();
 
-  if (d1.configured) {
-    const d1Client = createD1Adapter();
-    await ensureSchemaAndSeed(d1Client);
-    cachedMode = 'cloudflare-d1';
-    return d1Client;
+  if (!d1.configured) {
+    throw new Error('Cloudflare D1 configuration is required. Set CF_D1_API_TOKEN before starting the server.');
   }
 
-  if (!loggedFallbackNotice) {
-    loggedFallbackNotice = true;
-    console.warn(
-      `[MOKIKO DB] CF_D1_API_TOKEN is not set — using local SQLite fallback until Cloudflare D1 (${d1.databaseId}) token is configured.`
-    );
-  }
-
-  const configuredPath = process.env['SQLITE_DB_PATH']?.trim();
-  const dbPath = configuredPath ? path.resolve(configuredPath) : DEFAULT_DB_PATH;
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-  const nativeDb = new NativeDatabaseSync(dbPath);
-  nativeDb.exec('PRAGMA foreign_keys = ON;');
-  nativeDb.exec('PRAGMA journal_mode = WAL;');
-  nativeDb.exec('PRAGMA busy_timeout = 5000;');
-
-  const localClient = createLocalSqliteAdapter(nativeDb);
-  await ensureSchemaAndSeed(localClient);
-  cachedMode = 'local-sqlite';
-  return localClient;
+  const d1Client = createD1Adapter();
+  await ensureSchemaAndSeed(d1Client);
+  cachedMode = 'cloudflare-d1';
+  return d1Client;
 }
 
 function createD1Adapter(): DbClient {

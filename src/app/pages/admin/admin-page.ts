@@ -497,7 +497,7 @@ export class AdminPage implements OnInit {
       this.crmFeedback.set(
         this.isAr()
           ? 'تم تحديث المنتج في قاعدة البيانات.'
-          : 'Produit mis à jour dans SQLite et synchronisé avec la boutique.'
+          : 'Produit mis à jour et synchronisé avec la boutique.'
       );
     } catch (err) {
       this.crmError.set(
@@ -522,7 +522,7 @@ export class AdminPage implements OnInit {
       this.crmFeedback.set(
         this.isAr()
           ? `تم حذف "${product.name}" من قاعدة البيانات.`
-          : `Produit « ${product.name} » supprimé de SQLite.`
+          : `Produit « ${product.name} » supprimé.`
       );
     } catch (err) {
       this.crmError.set(
@@ -563,7 +563,7 @@ export class AdminPage implements OnInit {
       this.crmFeedback.set(
         this.isAr()
           ? 'تم حفظ المقاس واللون في قاعدة البيانات.'
-          : 'Variante taille et coloris enregistrée dans SQLite.'
+          : 'Variante taille et coloris enregistrée.'
       );
     } catch (err) {
       this.crmError.set(
@@ -751,7 +751,7 @@ export class AdminPage implements OnInit {
       await this.store.updateProductImageColor(imageId, color, colorHex);
       this.editingImageId.set(null);
       this.crmFeedback.set(
-        this.isAr() ? 'تم تحديث لون الصورة.' : 'Coloris de la photo mis à jour dans SQLite.'
+        this.isAr() ? 'تم تحديث لون الصورة.' : 'Coloris de la photo mis à jour.'
       );
     } catch (err) {
       this.crmError.set(
@@ -1003,7 +1003,7 @@ export class AdminPage implements OnInit {
             : 'Synchronisé avec Cloudflare D1 (mokiko).'
           : this.isAr()
             ? 'تمت المزامنة مع قاعدة البيانات.'
-            : 'Synchronisé avec la base SQLite.'
+            : 'Synchronisé avec la base de données.'
       );
     } catch (err) {
       this.crmError.set(
@@ -1117,7 +1117,7 @@ export class AdminPage implements OnInit {
       case 'uploading':
         return `Envoi vers Cloudflare R2${seq}…`;
       case 'finalizing':
-        return `Enregistrement SQLite${seq}…`;
+        return `Enregistrement${seq}…`;
       case 'done':
         return `Terminé${seq}`;
     }

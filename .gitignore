@@ -7,3 +7,9 @@ dist
 !.env.example
 coverage
 data
+# Runtime database files
+*.sqlite
+*.sqlite3
+*.db
+*-wal
+*-shm
