@@ -293,8 +293,8 @@
                 <p>
                   {{
                     isAr()
-                      ? 'تعديل الأسعار، المقاسات، المخزون، ورفع صور الألوان (ضغط WebP محلي قبل الحفظ في R2 / SQLite).'
-                      : 'Gérez les tarifs, stocks par taille/coloris et photos compressées localement en WebP avant envoi vers R2 / SQLite.'
+                      ? 'تعديل الأسعار، المقاسات، المخزون، ورفع صور الألوان (ضغط WebP محلي قبل الحفظ في R2 / base de données).'
+                      : 'Gérez les tarifs, stocks par taille/coloris et photos compressées localement en WebP avant envoi vers Cloudflare R2.'
                   }}
                 </p>
               </div>
@@ -768,8 +768,8 @@
                 <p>
                   {{
                     isAr()
-                      ? 'أضف منتجاً بمخزون أولي وصور متعددة الألوان مضغوطة محلياً بصيغة WebP قبل رفعها إلى R2 / SQLite.'
-                      : 'Créez un article avec son stock initial et plusieurs photos par coloris, compressées localement en WebP avant envoi vers R2 / SQLite.'
+                      ? 'أضف منتجاً بمخزون أولي وصور متعددة الألوان مضغوطة محلياً بصيغة WebP قبل رفعها إلى R2 / base de données.'
+                      : 'Créez un article avec son stock initial et plusieurs photos par coloris, compressées localement en WebP avant envoi vers Cloudflare R2.'
                   }}
                 </p>
               </div>
@@ -858,7 +858,7 @@
                   {{
                     isAr()
                       ? 'اختر اللون أدناه ثم أضف الصور. يتم ضغط الصور محلياً بصيغة WebP قبل الحفظ.'
-                      : 'Choisissez le coloris ci-dessous puis importez les photos correspondantes (compression WebP locale avant envoi vers R2 / SQLite).'
+                      : 'Choisissez le coloris ci-dessous puis importez les photos correspondantes (compression WebP locale avant envoi vers Cloudflare R2).'
                   }}
                 </p>
 
@@ -924,7 +924,7 @@
                     <small>
                       {{
                         isAr()
-                          ? 'يتم التصغير والضغط محلياً (400 / 800 / 1200 بكسل WebP) قبل الرفع إلى R2 / SQLite'
+                          ? 'يتم التصغير والضغط محلياً (400 / 800 / 1200 بكسل WebP) قبل الرفع إلى R2 / base de données'
                           : 'Redimensionnement et compression WebP locale (400 / 800 / 1200 px) avant envoi vers Cloudflare R2'
                       }}
                     </small>
@@ -1306,7 +1306,7 @@
                   {{
                     isAr()
                       ? 'أضف متغير البيئة CF_D1_API_TOKEN على الخادم (أو رابط Worker) للربط المباشر مع Cloudflare D1.'
-                      : 'Ajoutez la variable serveur CF_D1_API_TOKEN (ou l’URL du Worker) pour basculer du fallback SQLite local vers Cloudflare D1.'
+                      : 'Ajoutez la variable serveur CF_D1_API_TOKEN (ou l’URL du Worker) pour basculer du fallback base de données local vers Cloudflare D1.'
                   }}
                 }
               </p>

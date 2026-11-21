@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import type { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { d1Batch, d1Query, getD1Config } from './d1';
 

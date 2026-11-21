@@ -1102,7 +1102,7 @@ export class AdminPage implements OnInit {
         case 'uploading':
           return `جاري الرفع إلى Cloudflare R2${seq}…`;
         case 'finalizing':
-          return `حفظ البيانات في SQLite${seq}…`;
+          return `حفظ البيانات في base de données${seq}…`;
         case 'done':
           return `اكتمل${seq}`;
       }
