@@ -8,7 +8,7 @@
   --line: #DCD8CE;
   --line-strong: #C6C1B5;
   --accent: #141413;
-  --accent-bronze: #7A6348;
+  --accent-bronze: #F97316;
   --accent-forest: #182A24;
   --danger: #9B2C2C;
   --font-display: 'Barlow Condensed', 'Cairo', sans-serif;
@@ -921,7 +921,7 @@ button:disabled {
 }
 
 .footer-logo span {
-  color: #C4B399;
+  color: #F97316;
   margin-inline-start: 3px;
 }
 
@@ -972,7 +972,7 @@ button:disabled {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #C4B399;
+  color: #F97316;
 }
 
 .footer-nav-list,
@@ -2251,7 +2251,7 @@ button:disabled {
   height: 26px;
   border-radius: 50%;
   border: 1px dashed var(--ink);
-  background: conic-gradient(from 90deg, #b85d43, #c4b399, #5d6b63, #1d2d44, #6b2737, #b85d43);
+  background: conic-gradient(from 90deg, #F97316, #F97316, #5d6b63, #1d2d44, #6b2737, #F97316);
   display: inline-flex;
   align-items: center;
   justify-content: center;
