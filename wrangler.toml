@@ -1,7 +1,13 @@
-name = "mokiko-sport"
+name = "cod-sportswear-store"
 main = "worker/src/index.ts"
 compatibility_date = "2026-11-19"
 account_id = "44d2687132765f2b95d4916a4687c0c0"
+
+[assets]
+directory = "./dist/store/browser"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "DB"
